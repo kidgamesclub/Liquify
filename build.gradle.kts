@@ -26,14 +26,16 @@ mverse {
   groupId = "club.kidgames"
   //        checkstyleLocation = "/Users/ericm/etc/checkstyle/checkstyle"
   modules {
-    compile("findbugs")
     compile("guava")
     compile("kotlin-stdlib")
     compile("bukkit")
     compile("spigot-api")
-    compile("liqp")
   }
+
   coverageRequirement = 0.0
+  dependencies.lombok = false
+  dependencies.streamEx = false
+  dependencies.logback = false
 }
 
 findbugs {
@@ -50,7 +52,9 @@ dependencyManagement {
 }
 
 dependencies {
-  compile("me.clip:PlaceholderAPI")
+  compile("club.kidgames:liqp:0.7.13")
+  compileOnly("me.clip:PlaceholderAPI")
+  testCompile("me.clip:PlaceholderAPI")
   compileOnly("org.spigotmc:spigot-api")
   compileOnly("org.bukkit:bukkit")
 }
@@ -59,4 +63,6 @@ val shadowJar:ShadowJar by tasks
 shadowJar.dependencies {
   exclude(dependency(":spigot-api"))
   exclude(dependency(":PlaceholderAPI"))
+  include(dependency(":liqp"))
+  include(dependency(":commons-lang"))
 }

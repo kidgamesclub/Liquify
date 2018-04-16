@@ -74,4 +74,6 @@ tasks.withType(ShadowJar::class.java) {
   classifier = null
 }
 
+val foo by tasks.creating
+
 tasks["build"].dependsOn("shadowJar")

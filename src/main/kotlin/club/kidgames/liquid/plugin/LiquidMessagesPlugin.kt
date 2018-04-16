@@ -6,7 +6,7 @@ import me.clip.placeholderapi.external.EZPlaceholderHook
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 
-open class LiquidPlugin : JavaPlugin() {
+open class LiquidMessagesPlugin : JavaPlugin() {
   private var runtime: LiquidRuntime = LiquidRuntime(logger)
 
   override fun onEnable() {

@@ -1,0 +1,4 @@
+main: club.kidgames.liquid.plugin.LiquidMessagesPlugin
+version: 0.1.1
+name: LiquidMessagesPlugin
+description: LiquidMessagesPlugins

@@ -14,17 +14,13 @@ plugins {
   id("org.gradle.kotlin.kotlin-dsl").version("0.16.0")
   id("com.github.johnrengelman.shadow").version("2.0.3")
   id("io.mverse.project").version("0.5.16")
-  id("eu.hexagonmc.gradle.spigot").version("1.0")
 }
 
 repositories {
+  jcenter()
   maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots")
   maven("http://repo.bstats.org/content/repositories/releases/")
   maven("http://repo.dmulloy2.net/nexus/repository/public/")
-}
-
-spigot {
-  main("club.kidgames.liquid.plugin.LiquidMessagesPlugin")
 }
 
 mverse {
@@ -51,6 +47,7 @@ dependencyManagement {
     dependency("club.kidgames:liqp:0.7.13")
     dependency("me.clip:PlaceholderAPI:2.5.+")
     dependency("org.spigotmc:spigot-api:1.12.+")
+    dependency("org.yaml:snakeyaml:1.18")
   }
 }
 

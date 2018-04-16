@@ -1,14 +1,18 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import io.mverse.gradle.main
+import io.mverse.gradle.sourceSets
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.codehaus.groovy.tools.shell.util.Logger.io
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory.compile
 import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.maven
 import org.gradle.kotlin.dsl.repositories
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCallArgument.DefaultArgument.arguments
+import sun.tools.jar.resources.jar
 
 plugins {
   id("org.gradle.kotlin.kotlin-dsl").version("0.16.0")
@@ -28,7 +32,7 @@ mverse {
   //        checkstyleLocation = "/Users/ericm/etc/checkstyle/checkstyle"
   modules {
     compile("guava")
-    compile("kotlin-stdlib")
+    compile("kotlin-stdlib-jdk8")
     compile("spigot-api")
   }
 
@@ -58,10 +62,16 @@ dependencies {
   compileOnly("org.spigotmc:spigot-api")
 }
 
-val shadowJar:ShadowJar by tasks
-shadowJar.dependencies {
-  exclude(dependency(":spigot-api"))
-  exclude(dependency(":PlaceholderAPI"))
-  include(dependency(":liqp"))
-  include(dependency(":commons-lang"))
+tasks.withType(ShadowJar::class.java) {
+  dependsOn("jar")
+  dependencies {
+    exclude(dependency(":spigot-api"))
+    exclude(dependency(":PlaceholderAPI"))
+    include(dependency(":liqp"))
+    include(dependency(":commons-lang"))
+    include(dependency(":kotlin-stdlib-jdk8"))
+  }
+  classifier = null
 }
+
+tasks["build"].dependsOn("shadowJar")

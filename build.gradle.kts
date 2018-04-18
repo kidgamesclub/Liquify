@@ -38,6 +38,7 @@ mverse {
     compileOnly(lombok())
     testCompile(junit())
     testCompile(assertj())
+    testCompile(mockito())
   }
 
   coverageRequirement = 0.0

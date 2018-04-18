@@ -17,7 +17,7 @@ import sun.tools.jar.resources.jar
 plugins {
   id("org.gradle.kotlin.kotlin-dsl").version("0.16.0")
   id("com.github.johnrengelman.shadow").version("2.0.3")
-  id("io.mverse.project").version("0.5.16")
+  id("io.mverse.project").version("0.5.23")
 }
 
 repositories {
@@ -28,18 +28,19 @@ repositories {
 }
 
 mverse {
+  isDefaultDependencies = false
   groupId = "club.kidgames"
-  //        checkstyleLocation = "/Users/ericm/etc/checkstyle/checkstyle"
-  modules {
-    compile("guava")
-    compile("kotlin-stdlib-jdk8")
+  dependencies {
+    compile(guava())
+    compile("kotlin-stdlib")
     compile("spigot-api")
+    compile(commonsLang3())
+    compileOnly(lombok())
+
   }
 
   coverageRequirement = 0.0
-  dependencies.lombok = false
-  dependencies.streamEx = false
-  dependencies.logback = false
+
 }
 
 findbugs {
@@ -48,7 +49,7 @@ findbugs {
 
 dependencyManagement {
   dependencies {
-    dependency("club.kidgames:liqp:0.7.13")
+    dependency("club.kidgames:liqp:0.7.14")
     dependency("me.clip:PlaceholderAPI:2.5.+")
     dependency("org.spigotmc:spigot-api:1.12.+")
     dependency("org.yaml:snakeyaml:1.18")
@@ -56,7 +57,7 @@ dependencyManagement {
 }
 
 dependencies {
-  compile("club.kidgames:liqp:0.7.13")
+  compile("club.kidgames:liqp")
   compileOnly("me.clip:PlaceholderAPI")
   testCompile("me.clip:PlaceholderAPI")
   compileOnly("org.spigotmc:spigot-api")

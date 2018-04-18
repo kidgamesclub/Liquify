@@ -18,7 +18,6 @@ import club.kidgames.liquid.api.events.LiquidExtensionResult.DUPLICATE
 import club.kidgames.liquid.api.events.LiquidExtensionResult.SUCCESS
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
-import lombok.extern.slf4j.Slf4j
 import org.bukkit.entity.Player
 import java.util.logging.Logger
 
@@ -32,7 +31,6 @@ val defaultFallbackResolver: FallbackResolver = { player, key -> null }
 /**
  * Liquid text merging plugin.  This plugin uses liquid templating language to allow for robust rending capabilities.
  */
-@Slf4j
 class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, LiquidRenderEngine by instance.engine {
   companion object {
     internal var instance: LiquidRuntime = LiquidRuntime(Logger.getLogger("LiquidRuntime"))
@@ -45,6 +43,7 @@ class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, Liquid
     val registry: LiquidExtenderRegistry
       get() = instance
   }
+
   var isInitialized = false
   internal var fallbackResolver: FallbackResolver = defaultFallbackResolver
   internal val registeredPluginsByType: ExtendersByType<ByPluginName> = mutableMapOf()

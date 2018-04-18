@@ -27,6 +27,7 @@ import club.kidgames.liquid.merge.filters.strings.ToDoubleFilter
 import club.kidgames.liquid.merge.filters.strings.ToIntegerFilter
 import club.kidgames.liquid.merge.utils.SupplierMap
 import com.google.common.cache.CacheBuilder
+import groovy.util.logging.Slf4j
 import liqp.CacheSetup
 import liqp.RenderSettings
 import liqp.TemplateEngine
@@ -36,7 +37,6 @@ import liqp.nodes.RenderContext
 import liqp.parser.Flavor
 import liqp.tags.Tag
 import liqp.toNonNullString
-import lombok.extern.slf4j.Slf4j
 import org.bukkit.entity.Player
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -46,7 +46,6 @@ import java.util.logging.Logger
 /**
  * Liquid text merging plugin.  This plugin uses liquid templating language to allow for robust rending capabilities.
  */
-@Slf4j
 class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
                           filters: List<Filter> = listOf(),
                           private val placeholders: List<PlaceholderExtender> = listOf(),

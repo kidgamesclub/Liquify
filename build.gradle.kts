@@ -36,7 +36,8 @@ mverse {
     compile("spigot-api")
     compile(commonsLang3())
     compileOnly(lombok())
-
+    testCompile(junit())
+    testCompile(assertj())
   }
 
   coverageRequirement = 0.0

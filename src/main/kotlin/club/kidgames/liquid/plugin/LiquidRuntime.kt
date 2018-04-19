@@ -18,7 +18,9 @@ import club.kidgames.liquid.api.events.LiquidExtensionResult.DUPLICATE
 import club.kidgames.liquid.api.events.LiquidExtensionResult.SUCCESS
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import liqp.RenderSettings
 import org.bukkit.entity.Player
+import sun.audio.AudioPlayer.player
 import java.util.logging.Logger
 
 typealias ByPluginName = Multimap<PluginName, LiquidExtender>
@@ -27,11 +29,10 @@ typealias ExtendersByType<E> = MutableMap<LiquidExtenderType, E>
 
 val defaultFallbackResolver: FallbackResolver = { player, key -> null }
 
-
 /**
  * Liquid text merging plugin.  This plugin uses liquid templating language to allow for robust rending capabilities.
  */
-class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, LiquidRenderEngine by instance.engine {
+class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, LiquidRenderEngine {
   companion object {
     internal var instance: LiquidRuntime = LiquidRuntime(Logger.getLogger("LiquidRuntime"))
 
@@ -85,12 +86,12 @@ class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, Liquid
 
   private fun buildEngine(): LiquidRuntimeEngine {
     return LiquidRuntimeEngine(
-        extenders(TAG).values.map { it as TagExtender }.map { it.tag },
-        extenders(FILTER).values.map { it as FilterExtender }.map { it.filter },
-        extenders(PLACEHOLDER).values.map { it as PlaceholderExtender },
-        extenders(SNIPPET).values.map { it as SnippetExtender },
-        fallbackResolver,
-        logger)
+        tags=extenders(TAG).values.map { it as TagExtender }.map { it.tag },
+        filters=extenders(FILTER).values.map { it as FilterExtender }.map { it.filter },
+        placeholders=extenders(PLACEHOLDER).values.map { it as PlaceholderExtender },
+        snippets=extenders(SNIPPET).values.map { it as SnippetExtender },
+        fallbackResolver=fallbackResolver,
+        logger=logger)
   }
 
   fun register(extension: LiquidExtender): LiquidExtensionResult {
@@ -127,5 +128,25 @@ class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, Liquid
       null -> render(snippet.snippetText)
       else -> render(snippet.snippetText, player)
     }
+  }
+
+  override fun execute(templateString: String, player: Player): Any? {
+    return engine.execute(templateString, player)
+  }
+
+  override fun render(templateString: String, player: Player): String {
+    return engine.render(templateString, player)
+  }
+
+  override fun execute(templateString: String): Any? {
+    return engine.execute(templateString)
+  }
+
+  override fun render(templateString: String): String {
+    return engine.render(templateString)
+  }
+
+  override fun withSettings(configurer: RenderSettings.() -> Any?): LiquidRenderEngine {
+    return engine.withSettings(configurer)
   }
 }

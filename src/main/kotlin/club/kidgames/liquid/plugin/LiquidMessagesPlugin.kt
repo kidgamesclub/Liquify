@@ -10,6 +10,7 @@ open class LiquidMessagesPlugin : JavaPlugin() {
   private var runtime: LiquidRuntime = LiquidRuntime(logger)
 
   override fun onEnable() {
+    LiquidRuntime.instance = runtime
     server.pluginManager.registerEvents(LiquidPluginListener(logger, runtime), this)
     if (server.pluginManager.isPluginEnabled("PlaceholderAPI")) {
       // add a hook

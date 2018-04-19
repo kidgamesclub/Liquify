@@ -3,10 +3,11 @@ package club.kidgames.liquid.plugin
 import club.kidgames.liquid.api.LiquidRenderEngine
 import club.kidgames.liquid.api.PlaceholderExtender
 import club.kidgames.liquid.api.SnippetExtender
+import club.kidgames.liquid.extensions.MinecraftBaseFormatTag
+import club.kidgames.liquid.extensions.MinecraftFormat
+import club.kidgames.liquid.extensions.MinecraftFormatBaseFilter
 import club.kidgames.liquid.merge.filters.collections.CommaSeparatedFilter
 import club.kidgames.liquid.merge.filters.colors.DarkenFilter
-import club.kidgames.liquid.merge.filters.colors.MinecraftChatFormat
-import club.kidgames.liquid.merge.filters.colors.MinecraftColorize
 import club.kidgames.liquid.merge.filters.colors.ToRgbFilter
 import club.kidgames.liquid.merge.filters.javatime.IsoDateTimeFormatFilter
 import club.kidgames.liquid.merge.filters.javatime.MinusDaysFilter
@@ -27,11 +28,11 @@ import club.kidgames.liquid.merge.filters.strings.ToDoubleFilter
 import club.kidgames.liquid.merge.filters.strings.ToIntegerFilter
 import club.kidgames.liquid.merge.utils.SupplierMap
 import com.google.common.cache.CacheBuilder
-import groovy.util.logging.Slf4j
 import liqp.CacheSetup
 import liqp.RenderSettings
 import liqp.TemplateEngine
 import liqp.TemplateFactory
+import liqp.TemplateFactorySettings
 import liqp.filters.Filter
 import liqp.nodes.RenderContext
 import liqp.parser.Flavor
@@ -51,6 +52,8 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
                           private val placeholders: List<PlaceholderExtender> = listOf(),
                           private val snippets: List<SnippetExtender> = listOf(),
                           internal var fallbackResolver: FallbackResolver = defaultFallbackResolver,
+                          internal val configureRenderSettings: RenderSettings.() -> RenderSettings = { this },
+                          internal val configureTemplateFactory: TemplateFactorySettings.() -> TemplateFactorySettings = { this },
                           logger: Logger = Logger.getLogger(LiquidRuntimeEngine::class.java.name)
 ) : LiquidRenderEngine {
 
@@ -64,6 +67,22 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
         t.expireAfterWrite(12, TimeUnit.HOURS)
       }
     }
+
+    val formattingFilters = MinecraftFormat.values()
+        .map {
+          MinecraftFormatBaseFilter(it)
+        }
+        .toTypedArray()
+
+
+    val formattingTags = MinecraftFormat.values()
+        .map {
+          MinecraftBaseFormatTag(it)
+        }
+        .toTypedArray()
+
+
+
     // java time
     templateFactory = TemplateFactory.newBuilder()
         .withFilters(
@@ -93,13 +112,15 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
             // colors
             ToRgbFilter(),
             DarkenFilter(),
-            MinecraftChatFormat(),
-            MinecraftColorize())
-        .withTags(*tags.toTypedArray())
+            *formattingFilters
+        )
+        .withTags(*tags.toTypedArray(), *formattingTags)
         .withFilters(*filters.toTypedArray())
+        .withFilters()
         .cacheSettings(cacheSetup)
         .flavor(Flavor.LIQUID)
         .maxTemplateSize(50000L)
+        .configureTemplateFactory()
         .build()
 
     this.executorService = Executors.newFixedThreadPool(15)
@@ -108,7 +129,8 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
         .maxIterations(100)
         .maxStackSize(100)
         .strictVariables(false)
-        .maxRenderTimeMillis(3000L))
+        .maxRenderTimeMillis(3000L)
+        .configureRenderSettings())
   }
 
   internal fun renderWithContext(templateString: String, context: RenderContext): String {

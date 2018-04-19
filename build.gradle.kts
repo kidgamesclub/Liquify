@@ -33,8 +33,12 @@ mverse {
   dependencies {
     compile(guava())
     compile("kotlin-stdlib")
+    compile("kotlin-reflect")
     compile("spigot-api")
+    compile("jackson-annotations")
+    compile(streamEx())
     compile(commonsLang3())
+    compile("antlr4-runtime")
     compileOnly(lombok())
     testCompile(junit())
     testCompile(assertj())
@@ -52,7 +56,11 @@ findbugs {
 dependencyManagement {
   dependencies {
     dependency("club.kidgames:liqp:0.7.14")
+    dependency("club.kidgames:liqp:0.7.14")
+    dependency("org.mockito:mockito-core:2.18.0")
+
     dependency("me.clip:PlaceholderAPI:2.5.+")
+    dependency("org.antlr:antlr4-runtime:4.7.1")
     dependency("org.spigotmc:spigot-api:1.12.+")
     dependency("org.yaml:snakeyaml:1.18")
   }
@@ -60,6 +68,8 @@ dependencyManagement {
 
 dependencies {
   compile("club.kidgames:liqp")
+  testCompile("com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0-alpha03")
+
   compileOnly("me.clip:PlaceholderAPI")
   testCompile("me.clip:PlaceholderAPI")
   compileOnly("org.spigotmc:spigot-api")
@@ -71,12 +81,15 @@ tasks.withType(ShadowJar::class.java) {
     exclude(dependency(":spigot-api"))
     exclude(dependency(":PlaceholderAPI"))
     include(dependency(":liqp"))
+    include(dependency(":antlr4-runtime"))
     include(dependency(":commons-lang"))
-    include(dependency(":kotlin-stdlib-jdk8"))
+    include(dependency(":streamex"))
+    include(dependency(":jackson-annotations"))
+    include(dependency(":kotlin-reflect"))
   }
   classifier = null
+  version = null
 }
 
-val foo by tasks.creating
 
 tasks["build"].dependsOn("shadowJar")

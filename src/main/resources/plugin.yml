@@ -1,4 +1,12 @@
-main: club.kidgames.liquid.plugin.LiquidMessagesPlugin
+main: club.kidgames.liquid.plugin.LiquifyPlugin
 version: 0.1.1
-name: LiquidMessagesPlugin
-description: LiquidMessagesPlugins
+name: Liquify
+description: Rich liquid templates with logic, filters, and tags
+author: non_bogus
+commands:
+   liquify:
+      description: Resolves liquify messages
+      usage: /liquify [template]
+  lq:
+        description: Resolves liquify messages
+        usage: /liquify [template]

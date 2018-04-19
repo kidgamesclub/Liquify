@@ -46,7 +46,14 @@ class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, Liquid
   }
 
   var isInitialized = false
-  internal var fallbackResolver: FallbackResolver = defaultFallbackResolver
+  private var _fallbackResolver: FallbackResolver = defaultFallbackResolver
+  internal var fallbackResolver: FallbackResolver
+    set(fallbackResolver) {
+      this._fallbackResolver = fallbackResolver
+      engine = buildEngine()
+    }
+    get() = _fallbackResolver
+
   internal val registeredPluginsByType: ExtendersByType<ByPluginName> = mutableMapOf()
   internal val registeredExtendersByType: ExtendersByType<ByExtenderName> = mutableMapOf()
   internal val conflictsByType: ExtendersByType<ByExtenderName> = mutableMapOf()

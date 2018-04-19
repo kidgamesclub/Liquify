@@ -5,7 +5,7 @@ import org.junit.Test;
 /**
  * For some reason it's
  */
-public class LiquidMessagesPluginTest {
+public class LiquifyCommandPluginTest {
 
   @Test
   public void testSomething() {

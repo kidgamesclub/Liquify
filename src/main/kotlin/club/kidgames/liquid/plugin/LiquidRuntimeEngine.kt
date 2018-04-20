@@ -3,9 +3,9 @@ package club.kidgames.liquid.plugin
 import club.kidgames.liquid.api.LiquidRenderEngine
 import club.kidgames.liquid.api.PlaceholderExtender
 import club.kidgames.liquid.api.SnippetExtender
-import club.kidgames.liquid.extensions.MinecraftFormatTag
 import club.kidgames.liquid.extensions.MinecraftFormat
 import club.kidgames.liquid.extensions.MinecraftFormatFilter
+import club.kidgames.liquid.extensions.MinecraftFormatTag
 import club.kidgames.liquid.merge.filters.collections.CommaSeparatedFilter
 import club.kidgames.liquid.merge.filters.colors.DarkenFilter
 import club.kidgames.liquid.merge.filters.colors.ToRgbFilter
@@ -26,7 +26,9 @@ import club.kidgames.liquid.merge.filters.javatime.PlusWeeksFilter
 import club.kidgames.liquid.merge.filters.javatime.PlusYearsFilter
 import club.kidgames.liquid.merge.filters.strings.ToDoubleFilter
 import club.kidgames.liquid.merge.filters.strings.ToIntegerFilter
-import club.kidgames.liquid.merge.utils.SupplierMap
+import club.kidgames.liquid.api.models.LiquidModelMap
+import club.kidgames.liquid.extensions.FallbackResolver
+import club.kidgames.liquid.extensions.ModelContributor
 import com.google.common.cache.CacheBuilder
 import liqp.CacheSetup
 import liqp.RenderSettings
@@ -141,8 +143,17 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
   }
 
   override fun execute(templateString: String, player: Player): Any? {
-    val renderModel = buildRenderModel(player)
+    val renderModel = buildRenderContext(player)
     return executeWithContext(templateString, renderModel)
+  }
+
+  override fun render(templateString: String, model: ModelContributor): String {
+    return renderWithContext(templateString, buildRenderContext(model))
+  }
+
+  override fun execute(templateString: String, model: ModelContributor): Any? {
+    val context = buildRenderContext(model)
+    return executeWithContext(templateString, context)
   }
 
   override fun render(templateString: String, player: Player): String {
@@ -150,7 +161,7 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
   }
 
   override fun execute(templateString: String): Any? {
-    val renderModel = buildRenderModel()
+    val renderModel = buildRenderContext()
     return executeWithContext(templateString, renderModel)
   }
 
@@ -162,38 +173,39 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 
-  internal fun buildRenderModel(player: Player? = null): RenderContext {
-    val model: RenderModel = SupplierMap.newInstance<String, Any?>({ property ->
-      fallbackResolver(player, property as String)
+  internal fun buildRenderContext(player: Player): RenderContext {
+    return buildRenderContext { modelMap ->
+      modelMap.player = player
+      modelMap.server = player.server
+      modelMap.world = player.world
+    }
+  }
+
+  internal fun buildRenderContext(modelContributor: ModelContributor = {}): RenderContext {
+    val model = LiquidModelMap({ property, self ->
+      fallbackResolver(property, self)
     })
+
     val renderContext = engine.createRenderContext(model)
 
     placeholders.forEach {
-      model.putSupplier(it.name, {
-        it.resolvePlaceholder(player)
+      model.putSupplier(it.name, {model ->
+        it.resolvePlaceholder(model.player)
       })
     }
 
     model.putSupplier("snippets", snippet@{
-      val snippetMap = SupplierMap.newInstance<String, Any?>()
-      snippets.forEach {
-
-        snippetMap.putSupplier(it.name, {
-          this.executeWithContext(it.snippetText, renderContext)
+      val snippetMap = LiquidModelMap()
+      snippets.forEach {snippet->
+        snippetMap.putSupplier(snippet.name, {
+          this.executeWithContext(snippet.snippetText, renderContext)
         })
       }
       return@snippet snippetMap
     })
 
-    if (player != null) {
-      model["player"] = player
-      model["server"] = player.server
-      model["world"] = player.world
-    }
+    modelContributor(model)
 
     return renderContext
   }
 }
-
-typealias RenderModel = SupplierMap<String, Any?>
-typealias FallbackResolver = (Player?, String) -> Any?

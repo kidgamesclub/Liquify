@@ -1,5 +1,6 @@
 package club.kidgames.liquid.api;
 
+import club.kidgames.liquid.extensions.ModelContributor
 import liqp.RenderSettings
 import org.bukkit.entity.Player
 
@@ -10,6 +11,10 @@ interface LiquidRenderEngine {
   fun execute(templateString: String, player: Player): Any?
 
   fun render(templateString: String, player: Player): String
+
+  fun execute(templateString: String, model: ModelContributor): Any?
+
+  fun render(templateString: String, model: ModelContributor): String
 
   fun execute(templateString: String): Any?
 

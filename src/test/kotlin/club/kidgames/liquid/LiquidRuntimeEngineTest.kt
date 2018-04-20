@@ -1,12 +1,11 @@
 package club.kidgames.liquid
 
 import club.kidgames.liquid.api.PlaceholderExtender
-import club.kidgames.liquid.merge.utils.SupplierMap
+import club.kidgames.liquid.api.models.LiquidModelMap
 import club.kidgames.liquid.plugin.LiquidRuntimeEngine
 import com.google.common.collect.ImmutableMap
 import me.clip.placeholderapi.PlaceholderAPI
 import me.clip.placeholderapi.PlaceholderHook
-import org.assertj.core.api.Assertions.assertThat
 import org.bukkit.entity.Player
 import org.junit.Before
 import org.junit.Test
@@ -18,7 +17,6 @@ class LiquidRuntimeEngineTest {
   var _engine: LiquidRuntimeEngine? = null
   val engine: LiquidRuntimeEngine
     get() = _engine!!
-  var placeholderAPI: PlaceholderAPI? = null
 
   @Before
   fun setup() {
@@ -27,7 +25,7 @@ class LiquidRuntimeEngineTest {
     val placeholders = ArrayList<PlaceholderExtender>()
     placeholders.add(object : PlaceholderExtender("test", "echo") {
       override fun resolvePlaceholder(context: Player?): Any? {
-        return SupplierMap<Any, String> { key -> "echo: $key" }
+        return LiquidModelMap { key,_ -> "echo: $key" }
       }
     })
 
@@ -71,7 +69,7 @@ class LiquidRuntimeEngineTest {
     record("PlaceholderAPI Final", placeholder)
 
     val liquidModels = record("Create models", {
-      players.map { p -> engine.buildRenderModel(p) }
+      players.map { p -> engine.buildRenderContext(p) }
     })
 
     val liquid = {

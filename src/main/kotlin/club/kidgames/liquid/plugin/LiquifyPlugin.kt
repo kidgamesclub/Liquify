@@ -1,11 +1,12 @@
 package club.kidgames.liquid.plugin
 
 import club.kidgames.liquid.api.LiquidExtenderType
-import club.kidgames.liquid.merge.utils.SupplierMap
+import club.kidgames.liquid.api.models.LiquidModelMap
 import me.clip.placeholderapi.PlaceholderAPI
 import me.clip.placeholderapi.external.EZPlaceholderHook
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
+import sun.audio.AudioPlayer.player
 import java.util.logging.Level
 
 open class LiquifyPlugin : JavaPlugin() {
@@ -27,23 +28,23 @@ open class LiquifyPlugin : JavaPlugin() {
 
   fun integratePlaceholderAPI() {
     logger.log(Level.INFO, "Enabling Placeholder API integrations")
-    runtime.fallbackResolver = fallback@{ player, parent ->
+    runtime.fallbackResolver = fallback@{ placeholder, model ->
       try {
-        val placeholders = PlaceholderAPI.getPlaceholders()[parent]
-        logger.log(Level.INFO, "Placeholders: $placeholders for $parent")
+        val placeholders = PlaceholderAPI.getPlaceholders()[placeholder]
+        logger.log(Level.INFO, "Placeholders: $placeholders for $placeholder")
         return@fallback when {
-          placeholders != null -> SupplierMap.newInstance<String, Any?>(
+          placeholders != null -> LiquidModelMap.newInstance(
               supplier@{ key ->
 
                 val propName = key as String
 
-                val resolvedMessage = placeholders.onPlaceholderRequest(player, propName)
-                logger.log(Level.INFO, "Resolving message: $parent.$key as $resolvedMessage")
+                val resolvedMessage = placeholders.onPlaceholderRequest(model.player, propName)
+                logger.log(Level.INFO, "Resolving message: $placeholder.$key as $resolvedMessage")
                 return@supplier resolvedMessage
               })
           else -> {
-            val attempted = PlaceholderAPI.setPlaceholders(player, "%$parent%")
-            logger.log(Level.INFO, "Falling back to direct resolution of $parent -> $attempted")
+            val attempted = PlaceholderAPI.setPlaceholders(model.player, "%$placeholder%")
+            logger.log(Level.INFO, "Falling back to direct resolution of $placeholder -> $attempted")
             when {
               attempted.startsWith("%") -> null
               else -> attempted

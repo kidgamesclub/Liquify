@@ -16,6 +16,10 @@ import club.kidgames.liquid.api.events.LiquidExtensionResult
 import club.kidgames.liquid.api.events.LiquidExtensionResult.CONFLICT
 import club.kidgames.liquid.api.events.LiquidExtensionResult.DUPLICATE
 import club.kidgames.liquid.api.events.LiquidExtensionResult.SUCCESS
+import club.kidgames.liquid.extensions.ExtensionName
+import club.kidgames.liquid.extensions.FallbackResolver
+import club.kidgames.liquid.extensions.ModelContributor
+import club.kidgames.liquid.extensions.PluginName
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import liqp.RenderSettings
@@ -27,7 +31,7 @@ typealias ByPluginName = Multimap<PluginName, LiquidExtender>
 typealias ByExtenderName = MutableMap<ExtensionName, LiquidExtender>
 typealias ExtendersByType<E> = MutableMap<LiquidExtenderType, E>
 
-val defaultFallbackResolver: FallbackResolver = { player, key -> null }
+val defaultFallbackResolver: FallbackResolver = { key, model -> null }
 
 /**
  * Liquid text merging plugin.  This plugin uses liquid templating language to allow for robust rending capabilities.
@@ -137,6 +141,14 @@ class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, Liquid
       null -> render(snippet.snippetText)
       else -> render(snippet.snippetText, player)
     }
+  }
+
+  override fun execute(templateString: String, model: ModelContributor): Any? {
+    return engine.execute(templateString, model)
+  }
+
+  override fun render(templateString: String, model: ModelContributor): String {
+    return engine.render(templateString, model)
   }
 
   override fun execute(templateString: String, player: Player): Any? {

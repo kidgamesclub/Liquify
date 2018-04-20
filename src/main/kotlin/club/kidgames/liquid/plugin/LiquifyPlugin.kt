@@ -2,6 +2,7 @@ package club.kidgames.liquid.plugin
 
 import club.kidgames.liquid.api.LiquidExtenderType
 import club.kidgames.liquid.api.models.LiquidModelMap
+import club.kidgames.liquid.extensions.player
 import me.clip.placeholderapi.PlaceholderAPI
 import me.clip.placeholderapi.external.EZPlaceholderHook
 import org.bukkit.entity.Player

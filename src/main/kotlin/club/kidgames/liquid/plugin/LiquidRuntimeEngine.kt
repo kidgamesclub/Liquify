@@ -29,6 +29,9 @@ import club.kidgames.liquid.merge.filters.strings.ToIntegerFilter
 import club.kidgames.liquid.api.models.LiquidModelMap
 import club.kidgames.liquid.extensions.FallbackResolver
 import club.kidgames.liquid.extensions.ModelContributor
+import club.kidgames.liquid.extensions.player
+import club.kidgames.liquid.extensions.server
+import club.kidgames.liquid.extensions.world
 import com.google.common.cache.CacheBuilder
 import liqp.CacheSetup
 import liqp.RenderSettings

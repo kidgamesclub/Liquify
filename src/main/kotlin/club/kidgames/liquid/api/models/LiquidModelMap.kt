@@ -9,8 +9,6 @@ import org.bukkit.entity.Player
 import java.util.*
 import java.util.function.Supplier
 
-
-
 /**
  * Simple implementation that allows you to provide a supplier for a key, and the first time that map key is accessed,
  * the supplier will be invoked.  Also supports a default supplier, which is invoked for non-defined map keys, and the
@@ -22,10 +20,6 @@ import java.util.function.Supplier
 class LiquidModelMap : HashMap<String, Any?> {
   private val keySuppliers = HashMap<String, EntrySupplier>()
   private val defaultSupplier: FallbackResolver
-
-  var player:Player? by this
-  var server:Server? by this
-  var world: World? by this
 
   constructor(defaultSupplier: FallbackResolver) {
     this.defaultSupplier = defaultSupplier
@@ -68,7 +62,7 @@ class LiquidModelMap : HashMap<String, Any?> {
   }
 
   companion object {
-    @JvmStatic fun <K, V> newInstance(): LiquidModelMap {
+    @JvmStatic fun newInstance(): LiquidModelMap {
       return LiquidModelMap()
     }
 

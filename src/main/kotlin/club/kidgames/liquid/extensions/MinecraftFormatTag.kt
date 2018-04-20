@@ -14,7 +14,8 @@ import minecraftFormat
  * @property format The enum value for this tag
  * @property isReset Whether this tag needs to perform a reset when it completes rendering.
  */
-class MinecraftBaseFormatTag(val format: MinecraftFormat, val nestled: MinecraftBaseFormatTag? = null) : CustomTag(format.name.decapitalize()) {
+class MinecraftFormatTag(val format: MinecraftFormat,
+                         private val nestled: MinecraftFormatTag? = null) : CustomTag(format.name.decapitalize()) {
   private val formatAsSet = setOf(format)
   private var _isReset: Boolean = true
   private var isReset: Boolean
@@ -42,7 +43,7 @@ class MinecraftBaseFormatTag(val format: MinecraftFormat, val nestled: Minecraft
     return when {
       flattened.size == 1 && flattened[0].isMinecraftFormat -> {
         // These tags should be collapsed
-        MinecraftBaseFormatTag(format, flattened[0].minecraftFormat)
+        MinecraftFormatTag(format, flattened[0].minecraftFormat)
       }
       else -> this
     }

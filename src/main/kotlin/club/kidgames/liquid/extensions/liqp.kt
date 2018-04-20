@@ -1,4 +1,4 @@
-import club.kidgames.liquid.extensions.MinecraftBaseFormatTag
+import club.kidgames.liquid.extensions.MinecraftFormatTag
 import liqp.nodes.AtomNode
 import liqp.nodes.BlockNode
 import liqp.nodes.LNode
@@ -35,16 +35,16 @@ val Iterable<LNode>.flattened: List<LNode>
  */
 val LNode.isMinecraftFormat: Boolean
   get() {
-    return this is TagNode && this.tag is MinecraftBaseFormatTag
+    return this is TagNode && this.tag is MinecraftFormatTag
   }
 
 /**
  * Returns the current node as a minecraft tag, or error
  */
-val LNode.minecraftFormat: MinecraftBaseFormatTag
+val LNode.minecraftFormat: MinecraftFormatTag
   get() {
     return when {
-      this.isMinecraftFormat -> (this as TagNode).tag as MinecraftBaseFormatTag
+      this.isMinecraftFormat -> (this as TagNode).tag as MinecraftFormatTag
       else -> throw IllegalStateException("This node is not a minecraft tag node")
     }
   }

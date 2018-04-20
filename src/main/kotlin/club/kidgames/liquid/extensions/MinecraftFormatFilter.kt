@@ -1,11 +1,15 @@
 package club.kidgames.liquid.extensions
 
 import liqp.filters.Filter
+import liqp.filters.FilterChain
+import liqp.filters.FilterParams
 import liqp.nodes.RenderContext
+import java.util.concurrent.atomic.AtomicReference
 
-class MinecraftFormatBaseFilter(val format: MinecraftFormat) : Filter(format.name.decapitalize()) {
+class MinecraftFormatFilter(val format: MinecraftFormat) : Filter(format.name.decapitalize()) {
 
   private val formatAsSet = setOf(format)
+
 
   /**
    * Applies the filter on the 'value', with the given 'context'.
@@ -22,12 +26,24 @@ class MinecraftFormatBaseFilter(val format: MinecraftFormat) : Filter(format.nam
       value.toString().isBlank() -> value
       else -> {
         context.withMinecraftFormat(formatAsSet,
-            useStack = false,
+            forceFormat = true,
             isReset = true,
             renderBlock = {
               value.toString()
             })
       }
     }
+  }
+
+  override fun doFilterEnd(params: FilterParams, chain: FilterChain, context: RenderContext, result: AtomicReference<Any?>) {
+
+  }
+
+  override fun doStartFilterChain(params: FilterParams, chain: FilterChain, context: RenderContext, result: AtomicReference<Any?>) {
+
+  }
+
+  override fun doFilter(params: FilterParams, chain: FilterChain, context: RenderContext, result: AtomicReference<Any?>) {
+
   }
 }

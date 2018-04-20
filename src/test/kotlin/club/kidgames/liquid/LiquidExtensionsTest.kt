@@ -34,7 +34,7 @@ class LiquidExtensionsTest {
   }
 
   @Test
-  fun testFormats() {
+  fun testFilters() {
     val rendered = engine.render("Hello {{ player.displayName | red | bold }} and then some", player = player!!)
     println(rendered.replace('§', '&'))
     assertThat(rendered).isEqualToIgnoringCase("Hello §l§cbobby§r and then some")
@@ -57,7 +57,7 @@ class LiquidExtensionsTest {
     val rendered = engine.render("" +
         "{%red%}{{ '(red)' | reset }}A " +
         "{%underline%}{{ '(red+underline)' | reset }} and underlined:  Hello -= " +
-        "{{ '(darkBlue+bold)' | reset }} {{ player.displayName | bold | darkBlue }}" +
+        "{{ '(darkBlue+bold)' | reset }} {{ player.displayName | darkBlue | bold }}" +
         "{{ '(red+underline)' | reset }} -= and then " +
         "{% black %}{{ '(black+underline)' | reset }}some black {%endblack%}" +
         "{{ '(red+underline)' | reset }} stuff is{%endunderline%}" +

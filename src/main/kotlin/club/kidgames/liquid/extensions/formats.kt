@@ -15,12 +15,12 @@ typealias RenderBlock = () -> String
  *
  * @param formats The formats being added to the formatting stack
  * @param isReset Whether we should perform a reset after rendering
- * @param useStack Whether to push the colors onto the stack
+ * @param forceFormat Whether to force rendering of colors (otherwise, it may be deferred to another tag)
  * @param renderBlock The block of code that performs the actual rendering.
  */
 fun RenderContext.withMinecraftFormat(formats: Set<MinecraftFormat> = emptySet(),
                                       isReset: Boolean,
-                                      useStack: Boolean = true,
+                                      forceFormat: Boolean = false,
                                       renderBlock: RenderBlock): StringBuilder {
 
   val output = StringBuilder()
@@ -29,10 +29,8 @@ fun RenderContext.withMinecraftFormat(formats: Set<MinecraftFormat> = emptySet()
   //
   // 1. Append the colors to the stack.  We do this before rendering so child tags can look them
   //    up and append to them.
-  if (useStack) {
-    for (format in formats) {
-      context.pushFormat(format)
-    }
+  for (format in formats) {
+    context.pushFormat(format)
   }
 
   //
@@ -49,7 +47,7 @@ fun RenderContext.withMinecraftFormat(formats: Set<MinecraftFormat> = emptySet()
   // 4. If necessary, write the formatString.  We don't write the format string if the child node
   //    already appended colors.
   val childRenderedFormat = childOutput.startsWith(FORMAT_CHAR)
-  if (!childRenderedFormat) {
+  if (!childRenderedFormat || forceFormat) {
     output.append(formatString)
   }
 
@@ -59,11 +57,10 @@ fun RenderContext.withMinecraftFormat(formats: Set<MinecraftFormat> = emptySet()
 
   //
   // 6. Remove formats from the render stack
-  if (useStack) {
-    for (format in formats) {
-      context.popFormat()
-    }
+  for (format in formats) {
+    context.popFormat()
   }
+
 
   //
   // 7. If necessary, restore color formats for future content, by rendering a reset character

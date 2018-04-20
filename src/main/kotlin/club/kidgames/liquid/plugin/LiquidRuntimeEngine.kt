@@ -3,9 +3,9 @@ package club.kidgames.liquid.plugin
 import club.kidgames.liquid.api.LiquidRenderEngine
 import club.kidgames.liquid.api.PlaceholderExtender
 import club.kidgames.liquid.api.SnippetExtender
-import club.kidgames.liquid.extensions.MinecraftBaseFormatTag
+import club.kidgames.liquid.extensions.MinecraftFormatTag
 import club.kidgames.liquid.extensions.MinecraftFormat
-import club.kidgames.liquid.extensions.MinecraftFormatBaseFilter
+import club.kidgames.liquid.extensions.MinecraftFormatFilter
 import club.kidgames.liquid.merge.filters.collections.CommaSeparatedFilter
 import club.kidgames.liquid.merge.filters.colors.DarkenFilter
 import club.kidgames.liquid.merge.filters.colors.ToRgbFilter
@@ -70,14 +70,14 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
 
     val formattingFilters = MinecraftFormat.values()
         .map {
-          MinecraftFormatBaseFilter(it)
+          MinecraftFormatFilter(it)
         }
         .toTypedArray()
 
 
     val formattingTags = MinecraftFormat.values()
         .map {
-          MinecraftBaseFormatTag(it)
+          MinecraftFormatTag(it)
         }
         .toTypedArray()
 

@@ -59,7 +59,7 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
                           internal var fallbackResolver: FallbackResolver = defaultFallbackResolver,
                           internal val configureRenderSettings: RenderSettings.() -> RenderSettings = { this },
                           internal val configureTemplateFactory: TemplateFactorySettings.() -> TemplateFactorySettings = { this },
-                          logger: Logger = Logger.getLogger(LiquidRuntimeEngine::class.java.name)
+                          private val logger: Logger = Logger.getLogger(LiquidRuntimeEngine::class.java.name)
 ) : LiquidRenderEngine {
 
   private var templateFactory: TemplateFactory

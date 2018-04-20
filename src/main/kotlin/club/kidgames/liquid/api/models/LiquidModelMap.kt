@@ -26,7 +26,7 @@ class LiquidModelMap : HashMap<String, Any?> {
   }
 
   constructor() {
-    this.defaultSupplier = { key, self -> null }
+    this.defaultSupplier = { _, _ -> null }
   }
 
   fun putSupplier(key: String, supplier: Supplier<Any?>): LiquidModelMap {

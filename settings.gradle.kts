@@ -1,7 +1,7 @@
 import org.gradle.kotlin.dsl.maven
 import org.gradle.kotlin.dsl.repositories
 
-rootProject.name = "LiquidMessages"
+rootProject.name = "Liquify"
 
 pluginManagement {
     repositories {

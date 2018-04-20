@@ -1,6 +1,5 @@
 package club.kidgames.liquid
 
-import club.kidgames.liquid.extensions.MinecraftFormatTag
 import club.kidgames.liquid.plugin.LiquidRuntimeEngine
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -10,7 +9,7 @@ import org.junit.Before
 import org.junit.Test
 
 class LiquidExtensionsTest {
-  var _engine: LiquidRuntimeEngine? = null
+  private var _engine: LiquidRuntimeEngine? = null
   val engine: LiquidRuntimeEngine
     get() = _engine!!
 
@@ -22,25 +21,35 @@ class LiquidExtensionsTest {
         configureTemplateFactory = {
           stripSpacesAroundTags(false)
               .strictVariables(true)
-              .stripSingleLine(true)
+              .stripSingleLine(false)
         },
         configureRenderSettings = {
           maxRenderTimeMillis(Long.MAX_VALUE)
               .strictVariables(true)
-        }, tags = listOf(MinecraftFormatTag()))
+        })
 
     player = mock {
-      on { getDisplayName() } doReturn "bobby"
       on { displayName } doReturn "bobby"
     }
   }
 
   @Test
   fun testFormats() {
-
     val rendered = engine.render("Hello {{ player.displayName | red | bold }} and then some", player = player!!)
     println(rendered.replace('§', '&'))
     assertThat(rendered).isEqualToIgnoringCase("Hello §l§cbobby§r and then some")
+  }
+
+
+  @Test
+  fun testFormatTags() {
+    // This tests a number of things:
+    // * Nested colors/formats always render exactly one color followed by one style, eg.  red->bold->blue "Hello" would render as §5§l (blue+bold)
+    // * Extraneous reset/format strings are eliminated from "nestled" blocks (format blocks that contain only a single formatting tag)
+    // * Colors are removed from the stack after the tag renders
+    val rendered = engine.render("{%red%}{%bold%}{%yellow%}Am I Wry{%endyellow%}? {%green%}{%underline%}No{%endunderline%}{%endgreen%} by {%endbold%}Mew{%endred%} -- Eric", player = player!!)
+    println(rendered.replace('§', '&'))
+    assertThat(rendered).isEqualToIgnoringCase("§e§lAm I Wry§r§c§l? §a§nNo§r§c§l by §r§cMew§r -- Eric")
   }
 
   @Test

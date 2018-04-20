@@ -1,35 +1,63 @@
 package club.kidgames.liquid.extensions
 
-import liqp.nodes.AtomNode
+import flattened
+import isMinecraftFormat
 import liqp.nodes.LNode
 import liqp.nodes.RenderContext
+import liqp.tags.CustomTag
 import liqp.tags.Tag
+import minecraftFormat
 
-class MinecraftBaseFormatTag(format:MinecraftFormat) : Tag(format.name.decapitalize()) {
+/**
+ * A tag that renders minecraft color, ensuring to reset and reapply previous colors after a tag's execution is complete.
+ * @property nestled A nestled tag is a format tag that is the only non-whitespace child of another format tag
+ * @property format The enum value for this tag
+ * @property isReset Whether this tag needs to perform a reset when it completes rendering.
+ */
+class MinecraftBaseFormatTag(val format: MinecraftFormat, val nestled: MinecraftBaseFormatTag? = null) : CustomTag(format.name.decapitalize()) {
+  private val formatAsSet = setOf(format)
+  private var _isReset: Boolean = true
+  private var isReset: Boolean
+    get() {
+      return _isReset
+    }
+    set(isReset) {
+      this._isReset = isReset
+      if (!isReset && nestled != null) {
+        // If a tag is nestled, notify it that it does not need to perform a reset when it
+        // finishes rendering
+        nestled.isReset = false
+      }
+    }
 
-  val formatAsSet = setOf(format)
+  init {
+    nestled?.isReset = false
+  }
 
   /**
-   * Renders this tag.
-   *
-   * @param context the context (variables) with which this node should be rendered.
-   * @param nodes   the nodes of this tag is created with. See the file `src/grammar/LiquidWalker.g` to see how each of
-   * the tags is created.
-   *
-   * @return an Object denoting the rendered AST.
+   * Determines if this tag has "nestled" children.
    */
-  override fun render(context: RenderContext, vararg nodes: LNode): Any {
-
-    return when (nodes.size) {
-      0-> ""
-      1-> {
-        context.withMinecraftFormat(StringBuilder(), formatAsSet, {output->
-          output.append(nodes[0].render(context))
-        })
+  override fun createTagForNode(vararg tokens: LNode): Tag {
+    val flattened = listOf(*tokens).flattened
+    return when {
+      flattened.size == 1 && flattened[0].isMinecraftFormat -> {
+        // These tags should be collapsed
+        MinecraftBaseFormatTag(format, flattened[0].minecraftFormat)
       }
-      else-> throw IllegalStateException("This tag should only have two parameters")
+      else -> this
     }
   }
 
-
+  /**
+   * Renders this tag.
+   */
+  override fun render(context: RenderContext, vararg nodes: LNode): Any {
+    return context.withMinecraftFormat(formatAsSet,
+        isReset = this.isReset,
+        renderBlock = {
+          nodes.joinToString(transform = { node ->
+            node.render(context).toString()
+          })
+        })
+  }
 }

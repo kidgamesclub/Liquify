@@ -3,9 +3,9 @@ package club.kidgames.liquid.extensions
 import liqp.filters.Filter
 import liqp.nodes.RenderContext
 
-class MinecraftFormatBaseFilter(val format:MinecraftFormat) : Filter(format.name.decapitalize()) {
+class MinecraftFormatBaseFilter(val format: MinecraftFormat) : Filter(format.name.decapitalize()) {
 
-  val formatAsSet = setOf(format)
+  private val formatAsSet = setOf(format)
 
   /**
    * Applies the filter on the 'value', with the given 'context'.
@@ -21,9 +21,12 @@ class MinecraftFormatBaseFilter(val format:MinecraftFormat) : Filter(format.name
       value == null -> value
       value.toString().isBlank() -> value
       else -> {
-        context.withSimpleMinecraftFormat(StringBuilder(), formatAsSet, { output->
-          output.append(value)
-        })
+        context.withMinecraftFormat(formatAsSet,
+            useStack = false,
+            isReset = true,
+            renderBlock = {
+              value.toString()
+            })
       }
     }
   }

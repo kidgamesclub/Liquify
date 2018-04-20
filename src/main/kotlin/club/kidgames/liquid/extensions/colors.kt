@@ -1,15 +1,18 @@
 package club.kidgames.liquid.extensions
 
-import club.kidgames.liquid.extensions.MinecraftFormatType.*
+import club.kidgames.liquid.extensions.MinecraftFormatType.Color
+import club.kidgames.liquid.extensions.MinecraftFormatType.Style
 import com.google.common.base.CaseFormat.LOWER_CAMEL
 import com.google.common.base.CaseFormat.LOWER_HYPHEN
 import com.google.common.base.CaseFormat.LOWER_UNDERSCORE
 import com.google.common.base.CaseFormat.UPPER_CAMEL
 import com.google.common.base.Converter
-import java.awt.Color
 
-val FORMAT_CHAR = '\u00A7'
+const val FORMAT_CHAR = '\u00A7'
 
+/**
+ * We create tag/filters based on these variations in names.
+ */
 val conversions: Set<Converter<String, String>> = setOf(LOWER_HYPHEN, LOWER_CAMEL, LOWER_UNDERSCORE)
     .map { caseFormat -> UPPER_CAMEL.converterTo(caseFormat) }
     .toSet()
@@ -27,12 +30,20 @@ val colorLookupMap by lazy {
   allFormats.toMap()
 }
 
-
+/**
+ * Marks a format as being either style or color.
+ */
 enum class MinecraftFormatType {
-  Style,Color
+  Style,
+  Color
 }
 
-enum class MinecraftFormat(val format: Char, val type:MinecraftFormatType = Color) {
+/**
+ * Represents a minecraft formatting option, which can be referred to by name.
+ */
+enum class MinecraftFormat(val format: Char, val type: MinecraftFormatType = Color) {
+  NoColor(' ', Color),
+  NoStyle(' ', Style),
   Black('0'),
   DarkBlue('1'),
   DarkGreen('2'),
@@ -56,16 +67,22 @@ enum class MinecraftFormat(val format: Char, val type:MinecraftFormatType = Colo
   Italic('o', Style),
   Reset('r', Style);
 
-  override fun toString(): String {
-    return format()
+  val isNone: Boolean
+    get() {
+      return this == NoColor || this == NoStyle
+    }
+
+  fun appendTo(builder: StringBuilder): StringBuilder {
+    if (!this.isNone) {
+      builder.append(this.formatString)
+    }
+    return builder
   }
 
-  fun format(): String {
-    return appendTo().toString()
-  }
-
-  fun appendTo(builder: StringBuilder = StringBuilder()): StringBuilder {
-    return builder.append(FORMAT_CHAR).append(format)
+  override fun toString() = "$name: $formatString"
+  val formatString: String = when {
+    isNone -> ""
+    else -> "$FORMAT_CHAR$format"
   }
 
   companion object {
@@ -76,24 +93,8 @@ enum class MinecraftFormat(val format: Char, val type:MinecraftFormatType = Colo
     }
 
     @JvmStatic
-    fun findFormats(vararg inputs: Any?): Set<MinecraftFormat> {
-      val formats = mutableSetOf<MinecraftFormat>()
-      inputs
-          .filterNotNull()
-          .map { input ->
-            when (input) {
-              is Array<*>-> input
-                  .filterNotNull()
-                  .forEach { findFormat(it)?.let(formats::add) }
-              is Iterable<*> -> input
-                  .filterNotNull()
-                  .forEach { findFormat(it)?.let(formats::add) }
-              else -> findFormat(input)?.let(formats::add)
-            }
-          }
-
-      return formats
-    }
+    val MINECRAFT_FORMAT_CHAR = FORMAT_CHAR
   }
 }
+
 

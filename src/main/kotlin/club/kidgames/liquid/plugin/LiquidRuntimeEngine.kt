@@ -81,8 +81,6 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
         }
         .toTypedArray()
 
-
-
     // java time
     templateFactory = TemplateFactory.newBuilder()
         .withFilters(

@@ -102,21 +102,4 @@ class LiquidRuntimeEngineTest {
     println(msg + ": " + (System.currentTimeMillis() - start) + "ms")
     return value
   }
-
-  @Test
-  fun testMinecraftChatPlugin() {
-
-    val player = mock<Player>(Player::class.java)
-    val text = engine.render("{{ echo.redness | mformat: 123}}", player)
-    assertThat(text).isEqualTo("§1§2§3echo: redness")
-  }
-
-  @Test
-  fun testMinecraftColorizePlugin() {
-    val player = mock<Player>(Player::class.java)
-    val text = engine.render("{{ echo.redness | mcolor:'#FF33AA'}}", player)
-    assertThat(text).isEqualTo("§FF33AA;echo: redness")
-  }
-
-
 }

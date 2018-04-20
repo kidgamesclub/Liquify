@@ -37,9 +37,8 @@ class LiquidExtensionsTest {
   fun testFilters() {
     val rendered = engine.render("Hello {{ player.displayName | red | bold }} and then some", player = player!!)
     println(rendered.replace('§', '&'))
-    assertThat(rendered).isEqualToIgnoringCase("Hello §l§cbobby§r and then some")
+    assertThat(rendered).isEqualToIgnoringCase("Hello §c§lbobby§r and then some")
   }
-
 
   @Test
   fun testFormatTags() {
@@ -65,15 +64,10 @@ class LiquidExtensionsTest {
         "{{ '(plain)' | reset }} or plain text", player = player!!)
     println(rendered.replace('§', '&'))
 
-    assertThat(rendered).isEqualToIgnoringCase("" +
-        "§c§r(red)§r§cA " +
-        "§n§r(red+underline)§r§c§n and underlined:  Hello -= " +
-        "§r(darkBlue+bold)§r§c§n §1§lbobby§r§c§n§r§c§n§r" +
-        "(red+underline)§r§c§n -= and then " +
-        "§0§r(black+underline)§r§0§nsome black " +
-        "§r§c§n§r(red+underline)§r§c§n stuff is" +
-        "§r§c§r(red)§r§cnow red without underline§r§r" +
-        "(plain)§r or plain text")
+    assertThat(rendered).isEqualToIgnoringCase("§c§r(red)§r§cA §c§r(red+underline)§r§c§n and " +
+        "underlined:  Hello -= §c§r(darkBlue+bold)§r§c§n §1§lbobby§r§c§n§c§r(red+underline)§r§c§n " +
+        "-= and then §0§r(black+underline)§r§0§nsome black §r§c§n§c§r(red+underline)§r§c§n stuff " +
+        "is§r§c§c§r(red)§r§cnow red without underline§r§r(plain)§r or plain text")
   }
 }
 

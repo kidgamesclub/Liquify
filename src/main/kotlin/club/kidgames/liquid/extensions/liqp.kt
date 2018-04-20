@@ -3,6 +3,7 @@ import liqp.nodes.AtomNode
 import liqp.nodes.BlockNode
 import liqp.nodes.LNode
 import liqp.nodes.TagNode
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Flattens child block nodes, and removes all whitespace only atom nodes
@@ -48,3 +49,7 @@ val LNode.minecraftFormat: MinecraftFormatTag
       else -> throw IllegalStateException("This node is not a minecraft tag node")
     }
   }
+
+fun AtomicReference<Any?>.asString():String {
+  return get()?.toString() ?: ""
+}

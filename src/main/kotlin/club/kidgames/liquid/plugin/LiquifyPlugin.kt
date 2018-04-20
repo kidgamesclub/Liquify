@@ -36,14 +36,8 @@ open class LiquifyPlugin : JavaPlugin() {
               supplier@{ key ->
 
                 val propName = key as String
-                // Make sure it's formatted per PlaceholderAPI
-                val placeholder = when (propName.startsWith("${parent}_")) {
-                  true -> propName
-                  false -> "${parent}_$propName"
-                }
 
-
-                val resolvedMessage = placeholders.onPlaceholderRequest(player, placeholder)
+                val resolvedMessage = placeholders.onPlaceholderRequest(player, propName)
                 logger.log(Level.INFO, "Resolving message: $parent.$key as $resolvedMessage")
                 return@supplier resolvedMessage
               })

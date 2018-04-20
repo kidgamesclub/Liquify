@@ -1,12 +1,13 @@
 main: club.kidgames.liquid.plugin.LiquifyPlugin
 version: 0.1.2
 name: Liquify
-description: Rich liquid templates with logic, filters, and tags
+description: Liquify
 author: non_bogus
 commands:
-   liquify:
-      description: Resolves liquify messages
-      usage: /liquify [template]
+  liquify:
+    description: Resolves liquify messages
+    usage: /liquify [template]
   lq:
-        description: Resolves liquify messages
-        usage: /lq [template]
+    description: Resolves stuff
+    usage: /lq [template]
+

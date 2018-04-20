@@ -81,14 +81,14 @@ private val RenderContext.minecraftFormatStack: Deque<MinecraftFormat>
     }
   }
 
-val RenderContext.minecraftColor:MinecraftFormat
+val RenderContext.currMinecraftColor:MinecraftFormat
   get() {
     return minecraftFormatStack
         .firstOrNull { format -> format.type == Color }
     ?: NoColor
   }
 
-val RenderContext.minecraftStyle:MinecraftFormat
+val RenderContext.currMinecraftStyle:MinecraftFormat
   get() {
     return minecraftFormatStack
         .firstOrNull { format -> format.type == Style }
@@ -98,7 +98,7 @@ val RenderContext.minecraftStyle:MinecraftFormat
 /**
  * Returns the current minecraft format string
  */
-private fun RenderContext.currentFormatString(prev: String = "", forceReset: Boolean): String {
+fun RenderContext.currentFormatString(prev: String = "", forceReset: Boolean): String {
   val builder = StringBuilder()
 
   if ((forceReset || !prev.isEmpty()) && !prev.endsWith(Reset.formatString)) {
@@ -107,8 +107,8 @@ private fun RenderContext.currentFormatString(prev: String = "", forceReset: Boo
     builder.append(Reset.formatString)
   }
 
-  minecraftColor.appendTo(builder)
-  minecraftStyle.appendTo(builder)
+  currMinecraftColor.appendTo(builder)
+  currMinecraftStyle.appendTo(builder)
   return builder.toString()
 }
 

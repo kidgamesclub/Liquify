@@ -55,7 +55,7 @@ findbugs {
 
 dependencyManagement {
   dependencies {
-    dependency("club.kidgames:liqp:0.7.26")
+    dependency("club.kidgames:liqp:0.7.27")
     dependency("org.mockito:mockito-core:2.18.0")
 
     dependency("me.clip:PlaceholderAPI:2.5.+")

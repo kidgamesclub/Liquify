@@ -11,7 +11,7 @@ var LiquidModelMap.player: Player?
     return player
   }
   set(player) {
-    this["player"] = player!!
+    this["player"] = player
   }
 
 var LiquidModelMap.server: Server?
@@ -20,7 +20,7 @@ var LiquidModelMap.server: Server?
     return server
   }
   set(server) {
-    this["server"] = server!!
+    this["server"] = server
   }
 
 var LiquidModelMap.world: World?
@@ -29,6 +29,6 @@ var LiquidModelMap.world: World?
     return world
   }
   set(world) {
-    this["world"] = world!!
+    this["world"] = world
   }
 

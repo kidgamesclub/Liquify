@@ -24,7 +24,7 @@ class LiquidRuntimeEngineTest {
 
     val placeholders = ArrayList<PlaceholderExtender>()
     placeholders.add(object : PlaceholderExtender("test", "echo") {
-      override fun resolvePlaceholder(context: Player?): Any? {
+      override fun resolvePlaceholder(model: LiquidModelMap): Any? {
         return LiquidModelMap { key,_ -> "echo: $key" }
       }
     })

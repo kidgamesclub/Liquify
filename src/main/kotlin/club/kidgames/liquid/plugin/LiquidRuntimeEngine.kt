@@ -158,7 +158,7 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
 
     placeholders.forEach {
       model.putSupplier(it.name, {model ->
-        it.resolvePlaceholder(model.player)
+        it.resolvePlaceholder(model)
       })
     }
 

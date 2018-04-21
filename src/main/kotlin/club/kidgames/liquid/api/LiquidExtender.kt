@@ -1,5 +1,6 @@
 package club.kidgames.liquid.api
 
+import club.kidgames.liquid.api.models.LiquidModelMap
 import liqp.filters.Filter
 import liqp.tags.Tag
 import org.bukkit.entity.Player
@@ -22,7 +23,7 @@ interface LiquidExtender {
 abstract class PlaceholderExtender(override val pluginId: String,
                                    override val name: String) : LiquidExtender {
   final override val type = LiquidExtenderType.PLACEHOLDER
-  abstract fun resolvePlaceholder(context: Player?): Any?
+  abstract fun resolvePlaceholder(model: LiquidModelMap): Any?
 }
 
 data class SnippetExtender(override val pluginId: String,

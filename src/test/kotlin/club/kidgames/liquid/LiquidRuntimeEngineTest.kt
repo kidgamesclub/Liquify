@@ -69,7 +69,7 @@ class LiquidRuntimeEngineTest {
     record("PlaceholderAPI Final", placeholder)
 
     val liquidModels = record("Create models", {
-      players.map { p -> engine.buildRenderContext(p) }
+      players.map { p -> engine.buildRenderContext({it.player = p}) }
     })
 
     val liquid = {

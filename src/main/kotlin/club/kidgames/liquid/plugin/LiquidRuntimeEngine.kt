@@ -29,9 +29,6 @@ import club.kidgames.liquid.merge.filters.strings.ToIntegerFilter
 import club.kidgames.liquid.api.models.LiquidModelMap
 import club.kidgames.liquid.extensions.FallbackResolver
 import club.kidgames.liquid.extensions.ModelContributor
-import club.kidgames.liquid.extensions.player
-import club.kidgames.liquid.extensions.server
-import club.kidgames.liquid.extensions.world
 import com.google.common.cache.CacheBuilder
 import liqp.CacheSetup
 import liqp.RenderSettings
@@ -43,7 +40,6 @@ import liqp.nodes.RenderContext
 import liqp.parser.Flavor
 import liqp.tags.Tag
 import liqp.toNonNullString
-import org.bukkit.entity.Player
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -136,55 +132,24 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
         .configureRenderSettings())
   }
 
-  internal fun renderWithContext(templateString: String, context: RenderContext): String {
+  fun renderWithContext(templateString: String, context: RenderContext): String {
     return executeWithContext(templateString, context).toNonNullString()
   }
 
-  internal fun executeWithContext(templateString: String, context: RenderContext): Any? {
+  fun executeWithContext(templateString: String, context: RenderContext): Any? {
     val template = templateFactory.parse(templateString)
     return engine.executeWithContext(template, context)
   }
 
-  override fun execute(templateString: String, player: Player): Any? {
-    val renderModel = buildRenderContext(player)
-    return executeWithContext(templateString, renderModel)
+  override fun execute(template: String, vararg modelContributor: ModelContributor): Any? {
+    return executeWithContext(template, buildRenderContext(*modelContributor))
   }
 
-  override fun render(templateString: String, model: ModelContributor): String {
-    return renderWithContext(templateString, buildRenderContext(model))
+  override fun render(template: String, vararg modelContributor: ModelContributor): String {
+    return renderWithContext(template, buildRenderContext(*modelContributor))
   }
 
-  override fun execute(templateString: String, model: ModelContributor): Any? {
-    val context = buildRenderContext(model)
-    return executeWithContext(templateString, context)
-  }
-
-  override fun render(templateString: String, player: Player): String {
-    return execute(templateString, player).toNonNullString()
-  }
-
-  override fun execute(templateString: String): Any? {
-    val renderModel = buildRenderContext()
-    return executeWithContext(templateString, renderModel)
-  }
-
-  override fun render(templateString: String): String {
-    return execute(templateString).toNonNullString()
-  }
-
-  override fun withSettings(configurer: RenderSettings.() -> Any?): LiquidRenderEngine {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-  }
-
-  internal fun buildRenderContext(player: Player): RenderContext {
-    return buildRenderContext { modelMap ->
-      modelMap.player = player
-      modelMap.server = player.server
-      modelMap.world = player.world
-    }
-  }
-
-  internal fun buildRenderContext(modelContributor: ModelContributor = {}): RenderContext {
+  fun buildRenderContext(vararg modelContributors: ModelContributor): RenderContext {
     val model = LiquidModelMap({ property, self ->
       fallbackResolver(property, self)
     })
@@ -207,7 +172,7 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
       return@snippet snippetMap
     })
 
-    modelContributor(model)
+    modelContributors.forEach { contributeModels -> contributeModels(model) }
 
     return renderContext
   }

@@ -22,36 +22,23 @@ import club.kidgames.liquid.extensions.ModelContributor
 import club.kidgames.liquid.extensions.PluginName
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
-import liqp.RenderSettings
-import org.bukkit.entity.Player
-import sun.audio.AudioPlayer.player
 import java.util.logging.Logger
 
 typealias ByPluginName = Multimap<PluginName, LiquidExtender>
 typealias ByExtenderName = MutableMap<ExtensionName, LiquidExtender>
 typealias ExtendersByType<E> = MutableMap<LiquidExtenderType, E>
 
-val defaultFallbackResolver: FallbackResolver = { key, model -> null }
+val defaultFallbackResolver: FallbackResolver = { _, _ -> null }
+val liquidRuntimeInstance: LiquidRuntime = LiquidRuntime(Logger.getLogger("LiquidRuntime"))
 
 /**
  * Liquid text merging plugin.  This plugin uses liquid templating language to allow for robust rending capabilities.
  */
-class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, LiquidRenderEngine {
-  companion object {
-    internal var instance: LiquidRuntime = LiquidRuntime(Logger.getLogger("LiquidRuntime"))
-
-    @JvmStatic
-    val engine: LiquidRenderEngine
-      get() = instance
-
-    @JvmStatic
-    val registry: LiquidExtenderRegistry
-      get() = instance
-  }
-
+class LiquidRuntime(var logger: Logger) : LiquidExtenderRegistry, LiquidRenderEngine {
   var isInitialized = false
+
   private var _fallbackResolver: FallbackResolver = defaultFallbackResolver
-  internal var fallbackResolver: FallbackResolver
+  var fallbackResolver: FallbackResolver
     set(fallbackResolver) {
       this._fallbackResolver = fallbackResolver
       engine = buildEngine()
@@ -60,10 +47,20 @@ class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, Liquid
       return _fallbackResolver
     }
 
-  internal val registeredPluginsByType: ExtendersByType<ByPluginName> = mutableMapOf()
-  internal val registeredExtendersByType: ExtendersByType<ByExtenderName> = mutableMapOf()
-  internal val conflictsByType: ExtendersByType<ByExtenderName> = mutableMapOf()
-  internal var engine: LiquidRuntimeEngine = buildEngine()
+  private var engine: LiquidRenderEngine
+  private val registeredPluginsByType: ExtendersByType<ByPluginName> = mutableMapOf()
+  private val registeredExtendersByType: ExtendersByType<ByExtenderName> = mutableMapOf()
+  private val conflictsByType: ExtendersByType<ByExtenderName> = mutableMapOf()
+
+  var snippets:Map<String, String>
+
+  init {
+    engine = buildEngine()
+    snippets = extenders(SNIPPET).values
+        .map { it as SnippetExtender }
+        .map { it.name to it.snippetText }
+        .toMap()
+  }
 
   private fun conflicts(type: LiquidExtenderType): ByExtenderName {
     return conflictsByType.getOrPut(type, { mutableMapOf() })
@@ -97,14 +94,14 @@ class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, Liquid
     return extenders(type).containsKey(name)
   }
 
-  private fun buildEngine(): LiquidRuntimeEngine {
+  internal fun buildEngine(): LiquidRuntimeEngine {
     return LiquidRuntimeEngine(
-        tags=extenders(TAG).values.map { it as TagExtender }.map { it.tag },
-        filters=extenders(FILTER).values.map { it as FilterExtender }.map { it.filter },
-        placeholders=extenders(PLACEHOLDER).values.map { it as PlaceholderExtender },
-        snippets=extenders(SNIPPET).values.map { it as SnippetExtender },
-        fallbackResolver=fallbackResolver,
-        logger=logger)
+        tags = extenders(TAG).values.map { it as TagExtender }.map { it.tag },
+        filters = extenders(FILTER).values.map { it as FilterExtender }.map { it.filter },
+        placeholders = extenders(PLACEHOLDER).values.map { it as PlaceholderExtender },
+        snippets = extenders(SNIPPET).values.map { it as SnippetExtender },
+        fallbackResolver = fallbackResolver,
+        logger = logger)
   }
 
   fun register(extension: LiquidExtender): LiquidExtensionResult {
@@ -135,39 +132,22 @@ class LiquidRuntime(private val logger: Logger) : LiquidExtenderRegistry, Liquid
     return SUCCESS
   }
 
-  fun renderSnippet(player: Player?, snippetId: String): String {
-    val snippet = extenders(SNIPPET)[snippetId] as SnippetExtender
-    return when (player) {
-      null -> render(snippet.snippetText)
-      else -> render(snippet.snippetText, player)
-    }
+  override fun execute(template: String, vararg modelContributor: ModelContributor): Any? {
+    return engine.execute(template, *modelContributor)
   }
 
-  override fun execute(templateString: String, model: ModelContributor): Any? {
-    return engine.execute(templateString, model)
+  override fun render(template: String, vararg modelContributor: ModelContributor): String {
+    return engine.render(template, *modelContributor)
   }
 
-  override fun render(templateString: String, model: ModelContributor): String {
-    return engine.render(templateString, model)
-  }
+  companion object {
 
-  override fun execute(templateString: String, player: Player): Any? {
-    return engine.execute(templateString, player)
-  }
+    @JvmStatic
+    val renderer: LiquidRenderEngine
+      get() = liquidRuntimeInstance
 
-  override fun render(templateString: String, player: Player): String {
-    return engine.render(templateString, player)
-  }
-
-  override fun execute(templateString: String): Any? {
-    return engine.execute(templateString)
-  }
-
-  override fun render(templateString: String): String {
-    return engine.render(templateString)
-  }
-
-  override fun withSettings(configurer: RenderSettings.() -> Any?): LiquidRenderEngine {
-    return engine.withSettings(configurer)
+    @JvmStatic
+    val registry: LiquidExtenderRegistry
+      get() = liquidRuntimeInstance
   }
 }

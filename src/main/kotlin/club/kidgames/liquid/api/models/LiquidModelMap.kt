@@ -2,12 +2,14 @@ package club.kidgames.liquid.api.models
 
 import club.kidgames.liquid.extensions.EntrySupplier
 import club.kidgames.liquid.extensions.FallbackResolver
-import liqp.nodes.RenderContext
 import org.bukkit.Server
 import org.bukkit.World
 import org.bukkit.entity.Player
 import java.util.*
 import java.util.function.Supplier
+
+
+
 
 /**
  * Simple implementation that allows you to provide a supplier for a key, and the first time that map key is accessed,
@@ -20,6 +22,10 @@ import java.util.function.Supplier
 class LiquidModelMap : HashMap<String, Any?> {
   private val keySuppliers = HashMap<String, EntrySupplier>()
   private val defaultSupplier: FallbackResolver
+
+  var player: Player? by this
+  var world: World? by this
+  var server: Server? by this
 
   constructor(defaultSupplier: FallbackResolver) {
     this.defaultSupplier = defaultSupplier

@@ -2,19 +2,22 @@ package club.kidgames.liquid.plugin
 
 import club.kidgames.liquid.api.LiquidExtenderType
 import club.kidgames.liquid.api.models.LiquidModelMap
-import club.kidgames.liquid.extensions.player
 import me.clip.placeholderapi.PlaceholderAPI
 import me.clip.placeholderapi.external.EZPlaceholderHook
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
-import sun.audio.AudioPlayer.player
 import java.util.logging.Level
 
 open class LiquifyPlugin : JavaPlugin() {
-  private val runtime: LiquidRuntime = LiquidRuntime(logger)
+
+  private val runtime:LiquidRuntime
+
+  init {
+    liquidRuntimeInstance.logger = logger
+    runtime = liquidRuntimeInstance
+  }
 
   override fun onEnable() {
-    LiquidRuntime.instance = runtime
     server.pluginManager.registerEvents(LiquidPluginListener(logger, this), this)
     this.getCommand("liquify").executor = LiquifyCommand(runtime)
     this.getCommand("lq").executor = LiquifyCommand(runtime)
@@ -61,9 +64,10 @@ open class LiquifyPlugin : JavaPlugin() {
     // add a hook
     PlaceholderAPI.registerPlaceholderHook(this, object: EZPlaceholderHook(this, "snippet") {
       override fun onPlaceholderRequest(player: Player?, identifier: String): String? {
-        //If a known snippet name, otherwise render somethign else
+        //If a known snippet name, otherwise render something else
         return if (runtime.isRegistered(LiquidExtenderType.SNIPPET, identifier)) {
-          runtime.renderSnippet(player!!, identifier)
+          val snippetText = runtime.snippets[identifier]!!
+          runtime.render(snippetText, player!!)
         } else {
           null
         }

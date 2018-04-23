@@ -7,6 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.bukkit.entity.Player
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 
 class LiquidExtensionsTest {
   private var _engine: LiquidRuntimeEngine? = null
@@ -18,14 +19,15 @@ class LiquidExtensionsTest {
   @Before
   fun setup() {
     _engine = LiquidRuntimeEngine(
-        configureTemplateFactory = {
+        baseDir = File("./build/plugin/Liquify").apply { mkdirs() },
+        configureParser = {
           stripSpacesAroundTags(false)
               .strictVariables(true)
               .stripSingleLine(false)
         },
-        configureRenderSettings = {
-          maxRenderTimeMillis(Long.MAX_VALUE)
-              .strictVariables(true)
+        configureRenderer = {
+          withMaxRenderTimeMillis(Long.MAX_VALUE)
+              .withStrictVariables(true)
         })
 
     player = mock {

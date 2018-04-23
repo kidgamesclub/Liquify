@@ -29,7 +29,9 @@ class LiquidRuntimeEngineTest {
       }
     })
 
-    _engine = LiquidRuntimeEngine(placeholders = placeholders)
+    setupLiquifyTestDir()
+
+    _engine = LiquidRuntimeEngine(placeholders = placeholders, baseDir = liquifyTestDir)
     val playerToMap = { player: Player ->
       ImmutableMap.of<String, Any>("name", player.name, "uniqueId",
           player.uniqueId)

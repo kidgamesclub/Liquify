@@ -3,38 +3,38 @@ package club.kidgames.liquid.plugin
 import club.kidgames.liquid.api.LiquidRenderEngine
 import club.kidgames.liquid.api.PlaceholderExtender
 import club.kidgames.liquid.api.SnippetExtender
+import club.kidgames.liquid.api.models.LiquidModelMap
+import club.kidgames.liquid.extensions.FallbackResolver
 import club.kidgames.liquid.extensions.MinecraftFormat
 import club.kidgames.liquid.extensions.MinecraftFormatFilter
 import club.kidgames.liquid.extensions.MinecraftFormatTag
-import club.kidgames.liquid.merge.filters.collections.CommaSeparatedFilter
-import club.kidgames.liquid.merge.filters.colors.DarkenFilter
-import club.kidgames.liquid.merge.filters.colors.ToRgbFilter
-import club.kidgames.liquid.merge.filters.javatime.IsoDateTimeFormatFilter
-import club.kidgames.liquid.merge.filters.javatime.MinusDaysFilter
-import club.kidgames.liquid.merge.filters.javatime.MinusHoursFilter
-import club.kidgames.liquid.merge.filters.javatime.MinusMinutesFilter
-import club.kidgames.liquid.merge.filters.javatime.MinusMonthsFilter
-import club.kidgames.liquid.merge.filters.javatime.MinusSecondsFilter
-import club.kidgames.liquid.merge.filters.javatime.MinusWeeksFilter
-import club.kidgames.liquid.merge.filters.javatime.MinusYearsFilter
-import club.kidgames.liquid.merge.filters.javatime.PlusDaysFilter
-import club.kidgames.liquid.merge.filters.javatime.PlusHoursFilter
-import club.kidgames.liquid.merge.filters.javatime.PlusMinutesFilter
-import club.kidgames.liquid.merge.filters.javatime.PlusMonthsFilter
-import club.kidgames.liquid.merge.filters.javatime.PlusSecondsFilter
-import club.kidgames.liquid.merge.filters.javatime.PlusWeeksFilter
-import club.kidgames.liquid.merge.filters.javatime.PlusYearsFilter
-import club.kidgames.liquid.merge.filters.strings.ToDoubleFilter
-import club.kidgames.liquid.merge.filters.strings.ToIntegerFilter
-import club.kidgames.liquid.api.models.LiquidModelMap
-import club.kidgames.liquid.extensions.FallbackResolver
 import club.kidgames.liquid.extensions.ModelContributor
 import com.google.common.cache.CacheBuilder
 import liqp.CacheSetup
-import liqp.RenderSettings
-import liqp.TemplateEngine
-import liqp.TemplateFactory
-import liqp.TemplateFactorySettings
+import liqp.LiquidParser
+import liqp.LiquidRenderer
+import liqp.MutableParseSettings
+import liqp.MutableRenderSettings
+import liqp.ext.filters.collections.CommaSeparatedFilter
+import liqp.ext.filters.colors.DarkenFilter
+import liqp.ext.filters.colors.ToRgbFilter
+import liqp.ext.filters.javatime.IsoDateTimeFormatFilter
+import liqp.ext.filters.javatime.MinusDaysFilter
+import liqp.ext.filters.javatime.MinusHoursFilter
+import liqp.ext.filters.javatime.MinusMinutesFilter
+import liqp.ext.filters.javatime.MinusMonthsFilter
+import liqp.ext.filters.javatime.MinusSecondsFilter
+import liqp.ext.filters.javatime.MinusWeeksFilter
+import liqp.ext.filters.javatime.MinusYearsFilter
+import liqp.ext.filters.javatime.PlusDaysFilter
+import liqp.ext.filters.javatime.PlusHoursFilter
+import liqp.ext.filters.javatime.PlusMinutesFilter
+import liqp.ext.filters.javatime.PlusMonthsFilter
+import liqp.ext.filters.javatime.PlusSecondsFilter
+import liqp.ext.filters.javatime.PlusWeeksFilter
+import liqp.ext.filters.javatime.PlusYearsFilter
+import liqp.ext.filters.strings.ToDoubleFilter
+import liqp.ext.filters.strings.ToIntegerFilter
 import liqp.filters.Filter
 import liqp.nodes.RenderContext
 import liqp.parser.Flavor
@@ -44,22 +44,25 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
+import java.io.File
+
 
 /**
  * Liquid text merging plugin.  This plugin uses liquid templating language to allow for robust rending capabilities.
  */
 class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
                           filters: List<Filter> = listOf(),
+                          baseDir:File,
+                          var fallbackResolver: FallbackResolver = defaultFallbackResolver,
                           private val placeholders: List<PlaceholderExtender> = listOf(),
                           private val snippets: List<SnippetExtender> = listOf(),
-                          internal var fallbackResolver: FallbackResolver = defaultFallbackResolver,
-                          internal val configureRenderSettings: RenderSettings.() -> RenderSettings = { this },
-                          internal val configureTemplateFactory: TemplateFactorySettings.() -> TemplateFactorySettings = { this },
+                          internal val configureRenderer: MutableRenderSettings.() -> MutableRenderSettings = { this },
+                          internal val configureParser: MutableParseSettings.() -> MutableParseSettings = { this },
                           private val logger: Logger = Logger.getLogger(LiquidRuntimeEngine::class.java.name)
 ) : LiquidRenderEngine {
 
-  private var templateFactory: TemplateFactory
-  private var engine: TemplateEngine
+  private var parser: LiquidParser
+  private var renderer: LiquidRenderer
   private var executorService: ExecutorService
 
   init {
@@ -70,21 +73,16 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
     }
 
     val formattingFilters = MinecraftFormat.values()
-        .map {
-          MinecraftFormatFilter(it)
-        }
+        .map { MinecraftFormatFilter(it) }
         .toTypedArray()
 
-
     val formattingTags = MinecraftFormat.values()
-        .map {
-          MinecraftFormatTag(it)
-        }
+        .map { MinecraftFormatTag(it) }
         .toTypedArray()
 
     // java time
-    templateFactory = TemplateFactory.newBuilder()
-        .withFilters(
+    parser = LiquidParser.newBuilder()
+        .addFilters(
             MinusYearsFilter(),
             MinusMonthsFilter(),
             MinusWeeksFilter(),
@@ -113,23 +111,25 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
             DarkenFilter(),
             *formattingFilters
         )
-        .withTags(*tags.toTypedArray(), *formattingTags)
-        .withFilters(*filters.toTypedArray())
-        .withFilters()
+        .addTags(*tags.toTypedArray(), *formattingTags)
+        .addFilters(*filters.toTypedArray())
         .cacheSettings(cacheSetup)
+        .baseDir(baseDir)
         .flavor(Flavor.LIQUID)
         .maxTemplateSize(50000L)
-        .configureTemplateFactory()
-        .build()
+        .configureParser()
+        .toParser()
+
 
     this.executorService = Executors.newFixedThreadPool(15)
-    engine = TemplateEngine.newInstance(RenderSettings()
-        .executor(executorService)
-        .maxIterations(100)
-        .maxStackSize(100)
-        .strictVariables(false)
-        .maxRenderTimeMillis(3000L)
-        .configureRenderSettings())
+    renderer = LiquidRenderer.newInstance {
+      executor = executorService
+      maxIterations = 100
+      maxStackSize = 100
+      isStrictVariables = false
+      maxRenderTimeMillis = 3000L
+      configureRenderer()
+    }
   }
 
   fun renderWithContext(templateString: String, context: RenderContext): String {
@@ -137,8 +137,8 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
   }
 
   fun executeWithContext(templateString: String, context: RenderContext): Any? {
-    val template = templateFactory.parse(templateString)
-    return engine.executeWithContext(template, context)
+    val template = parser.parse(templateString)
+    return renderer.executeWithContext(template, context)
   }
 
   override fun execute(template: String, vararg modelContributor: ModelContributor): Any? {
@@ -154,7 +154,7 @@ class LiquidRuntimeEngine(tags: List<Tag> = listOf(),
       fallbackResolver(property, self)
     })
 
-    val renderContext = engine.createRenderContext(model)
+    val renderContext = renderer.createRenderContext(model)
 
     placeholders.forEach {
       model.putSupplier(it.name, {model ->

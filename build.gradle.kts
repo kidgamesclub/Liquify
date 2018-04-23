@@ -27,22 +27,32 @@ repositories {
   maven("http://repo.dmulloy2.net/nexus/repository/public/")
 }
 
+dependencies {
+  testCompile("com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0-alpha03")
+}
+
 mverse {
   isDefaultDependencies = false
   groupId = "club.kidgames"
   dependencies {
     compile(guava())
-    compile("kotlin-stdlib")
-    compile("kotlin-reflect")
-    compile("spigot-api")
-    compile("jackson-annotations")
     compile(streamEx())
     compile(commonsLang3())
-    compile("antlr4-runtime")
     compileOnly(lombok())
     testCompile(junit())
     testCompile(assertj())
     testCompile(mockito())
+
+    compile("liqp-core")
+    compile("liqp-ext")
+    compile("kotlin-stdlib")
+    compile("kotlin-reflect")
+    compile("jackson-annotations")
+    compile("antlr4-runtime")
+    compileOnly("spigot-api")
+    testCompile("spigot-api")
+    compileOnly("PlaceholderAPI")
+    testCompile("PlaceholderAPI")
   }
 
   coverageRequirement = 0.0
@@ -55,7 +65,9 @@ findbugs {
 
 dependencyManagement {
   dependencies {
-    dependency("club.kidgames:liqp:0.7.27")
+
+    dependency("club.kidgames:liqp-core:0.7.33")
+    dependency("club.kidgames:liqp-ext:0.7.33")
     dependency("org.mockito:mockito-core:2.18.0")
 
     dependency("me.clip:PlaceholderAPI:2.5.+")
@@ -65,21 +77,13 @@ dependencyManagement {
   }
 }
 
-dependencies {
-  compile("club.kidgames:liqp")
-  testCompile("com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0-alpha03")
-
-  compileOnly("me.clip:PlaceholderAPI")
-  testCompile("me.clip:PlaceholderAPI")
-  compileOnly("org.spigotmc:spigot-api")
-}
-
 tasks.withType(ShadowJar::class.java) {
   dependsOn("jar")
   dependencies {
     exclude(dependency(":spigot-api"))
     exclude(dependency(":PlaceholderAPI"))
-    include(dependency(":liqp"))
+    include(dependency(":liqp-core"))
+    include(dependency(":liqp-ext"))
     include(dependency(":antlr4-runtime"))
     include(dependency(":commons-lang"))
     include(dependency(":streamex"))
@@ -87,7 +91,6 @@ tasks.withType(ShadowJar::class.java) {
     include(dependency(":kotlin-reflect"))
   }
   classifier = null
-  version = null
 }
 
 

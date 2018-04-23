@@ -22,6 +22,8 @@ import club.kidgames.liquid.extensions.ModelContributor
 import club.kidgames.liquid.extensions.PluginName
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import java.io.File
+import java.util.logging.Level
 import java.util.logging.Logger
 
 typealias ByPluginName = Multimap<PluginName, LiquidExtender>
@@ -29,15 +31,39 @@ typealias ByExtenderName = MutableMap<ExtensionName, LiquidExtender>
 typealias ExtendersByType<E> = MutableMap<LiquidExtenderType, E>
 
 val defaultFallbackResolver: FallbackResolver = { _, _ -> null }
-val liquidRuntimeInstance: LiquidRuntime = LiquidRuntime(Logger.getLogger("LiquidRuntime"))
+val liquidRuntimeInstance: LiquidRuntime = LiquidRuntime(
+    Logger.getLogger(liquifyPluginName), liquifyPluginName, liquifyDataDir)
 
 /**
- * Liquid text merging plugin.  This plugin uses liquid templating language to allow for robust rending capabilities.
+ * Renders liquid templates for the Liquify plugin.  Internally, it maintains an engine instance that
+ * can be rebuilt if configuration changes.
+ *
+ * Should stay agnostic of minecraft-specific types, including plugins.
  */
-class LiquidRuntime(var logger: Logger) : LiquidExtenderRegistry, LiquidRenderEngine {
-  var isInitialized = false
+data class LiquidRuntime(var logger: Logger,
+                         val name: String,
+                         val dataFolder: File,
+                         var isInitialized: Boolean = false,
+                         private val registeredPluginsByType: ExtendersByType<ByPluginName> = mutableMapOf(),
+                         private val registeredExtendersByType: ExtendersByType<ByExtenderName> = mutableMapOf(),
+                         private val conflictsByType: ExtendersByType<ByExtenderName> = mutableMapOf()
+) : LiquidExtenderRegistry, LiquidRenderEngine {
 
+  /**
+   * Backing property for fallbackResolver
+   */
   private var _fallbackResolver: FallbackResolver = defaultFallbackResolver
+
+  private var engine: LiquidRenderEngine = buildEngine()
+
+  val snippets: Map<String, String>
+    get() {
+      return extenders(SNIPPET).values
+          .map { it as SnippetExtender }
+          .map { it.name to it.snippetText }
+          .toMap()
+    }
+
   var fallbackResolver: FallbackResolver
     set(fallbackResolver) {
       this._fallbackResolver = fallbackResolver
@@ -46,21 +72,6 @@ class LiquidRuntime(var logger: Logger) : LiquidExtenderRegistry, LiquidRenderEn
     get() {
       return _fallbackResolver
     }
-
-  private var engine: LiquidRenderEngine
-  private val registeredPluginsByType: ExtendersByType<ByPluginName> = mutableMapOf()
-  private val registeredExtendersByType: ExtendersByType<ByExtenderName> = mutableMapOf()
-  private val conflictsByType: ExtendersByType<ByExtenderName> = mutableMapOf()
-
-  var snippets:Map<String, String>
-
-  init {
-    engine = buildEngine()
-    snippets = extenders(SNIPPET).values
-        .map { it as SnippetExtender }
-        .map { it.name to it.snippetText }
-        .toMap()
-  }
 
   private fun conflicts(type: LiquidExtenderType): ByExtenderName {
     return conflictsByType.getOrPut(type, { mutableMapOf() })
@@ -94,9 +105,10 @@ class LiquidRuntime(var logger: Logger) : LiquidExtenderRegistry, LiquidRenderEn
     return extenders(type).containsKey(name)
   }
 
-  internal fun buildEngine(): LiquidRuntimeEngine {
+  private fun buildEngine(): LiquidRuntimeEngine {
     return LiquidRuntimeEngine(
         tags = extenders(TAG).values.map { it as TagExtender }.map { it.tag },
+        baseDir = dataFolder,
         filters = extenders(FILTER).values.map { it as FilterExtender }.map { it.filter },
         placeholders = extenders(PLACEHOLDER).values.map { it as PlaceholderExtender },
         snippets = extenders(SNIPPET).values.map { it as SnippetExtender },
@@ -107,6 +119,7 @@ class LiquidRuntime(var logger: Logger) : LiquidExtenderRegistry, LiquidRenderEn
   fun register(extension: LiquidExtender): LiquidExtensionResult {
     val plugins = plugins(extension.type)
     if (plugins[extension.pluginId].isNotEmpty()) {
+      logger.log(Level.WARNING, "Duplicate extension ${extension.type} for ${extension.pluginId}: ${extension.name}")
       return DUPLICATE
     } else {
       plugins.put(extension.pluginId, extension)
@@ -114,11 +127,13 @@ class LiquidRuntime(var logger: Logger) : LiquidExtenderRegistry, LiquidRenderEn
 
     val extenders = extenders(extension.type)
     val conflicts = conflicts(extension.type)
-
     val existing = extenders[extension.name]
+
     if (existing != null && existing.pluginId != extension.pluginId) {
       conflicts[extension.name] = extension
       conflicts[extension.name] = existing
+      logger.log(Level.WARNING, "Conflict for ${extension.name} of type ${extension.type} between ${extension.pluginId} and ${existing.pluginId}")
+
       return CONFLICT
     }
 
@@ -129,6 +144,7 @@ class LiquidRuntime(var logger: Logger) : LiquidExtenderRegistry, LiquidRenderEn
       this.engine = buildEngine()
     }
 
+    logger.log(Level.WARNING, "Registered ${extension.name} of type ${extension.type} for ${extension.pluginId}")
     return SUCCESS
   }
 
@@ -140,8 +156,14 @@ class LiquidRuntime(var logger: Logger) : LiquidExtenderRegistry, LiquidRenderEn
     return engine.render(template, *modelContributor)
   }
 
-  companion object {
+  fun unregisterAll(pluginName: String?) {
+  }
 
+  fun resetFallbackResolver() {
+    this.fallbackResolver = defaultFallbackResolver
+  }
+
+  companion object {
     @JvmStatic
     val renderer: LiquidRenderEngine
       get() = liquidRuntimeInstance

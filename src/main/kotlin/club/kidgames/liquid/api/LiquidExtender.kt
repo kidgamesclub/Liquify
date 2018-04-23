@@ -28,15 +28,15 @@ abstract class PlaceholderExtender(override val pluginId: String,
 
 data class SnippetExtender(override val pluginId: String,
                            override val name: String, val snippetText: String) : LiquidExtender {
-  override val type = LiquidExtenderType.PLACEHOLDER
+  override val type = LiquidExtenderType.SNIPPET
 }
 
 data class FilterExtender(override val pluginId: String,
                           override val name: String, val filter: Filter) : LiquidExtender {
-  override val type = LiquidExtenderType.PLACEHOLDER
+  override val type = LiquidExtenderType.FILTER
 }
 
 data class TagExtender(override val pluginId: String,
                        override val name: String, val tag: Tag) : LiquidExtender {
-  override val type = LiquidExtenderType.PLACEHOLDER
+  override val type = LiquidExtenderType.TAG
 }

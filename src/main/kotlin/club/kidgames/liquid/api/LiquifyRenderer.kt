@@ -2,13 +2,15 @@ package club.kidgames.liquid.api
 
 import club.kidgames.liquid.api.models.LiquidModelMap
 import club.kidgames.liquid.extensions.ModelContributor
+import liqp.nodes.RenderContext
 import org.bukkit.entity.Player
 import java.util.function.Consumer
 
 /**
  * Liquid text merging plugin.  This plugin uses liquid templating language to allow for robust rending capabilities.
  */
-interface LiquidRenderEngine {
+interface LiquifyRenderer {
+
   fun execute(template: String, player: Player): Any? {
     return this.execute(template, { model: LiquidModelMap -> model.player = player })
   }
@@ -29,7 +31,11 @@ interface LiquidRenderEngine {
         .toTypedArray())
   }
 
+  fun newRenderContext(vararg modelContributors: ModelContributor): RenderContext
+
   fun execute(template: String, vararg modelContributor: ModelContributor): Any?
 
   fun render(template: String, vararg modelContributor: ModelContributor): String
+
+  fun render(template: String, context: RenderContext): String
 }

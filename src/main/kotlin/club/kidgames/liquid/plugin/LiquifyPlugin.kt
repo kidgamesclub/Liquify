@@ -9,19 +9,19 @@ import org.bukkit.plugin.java.JavaPlugin
  */
 open class LiquifyPlugin : JavaPlugin() {
 
-  private val runtime: LiquidRuntime
+  private val liquify: Liquify
   private val integrator: LiquifyIntegrator
 
   init {
-    liquidRuntimeInstance.logger = logger
-    runtime = liquidRuntimeInstance
-    integrator = LiquifyIntegrator(runtime, logger)
+    liquifyInstance.logger = logger
+    liquify = liquifyInstance
+    integrator = LiquifyIntegrator(liquify, logger)
   }
 
   override fun onEnable() {
-    server.pluginManager.registerEvents(LiquidPluginListener(logger, integrator, runtime), this)
-    this.getCommand("liquify").executor = LiquifyCommand(runtime)
-    this.getCommand("lq").executor = LiquifyCommand(runtime)
+    server.pluginManager.registerEvents(LiquidPluginListener(liquify, integrator, liquify.extenders), this)
+    this.getCommand("liquify").executor = LiquifyCommand(liquify.renderer)
+    this.getCommand("lq").executor = LiquifyCommand(liquify.renderer)
     if (server.pluginManager.isPluginEnabled("PlaceholderAPI")) {
       integrator.integratePlaceholderAPI()
     }
@@ -33,6 +33,6 @@ open class LiquifyPlugin : JavaPlugin() {
   }
 
   override fun onLoad() {
-    runtime.isInitialized = true
+    liquify.isInitialized = true
   }
 }

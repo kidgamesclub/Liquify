@@ -93,5 +93,4 @@ tasks.withType(ShadowJar::class.java) {
   classifier = null
 }
 
-
 tasks["build"].dependsOn("shadowJar")

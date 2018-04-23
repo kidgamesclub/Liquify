@@ -2,11 +2,14 @@ package club.kidgames.liquid
 
 import java.io.File
 
-val liquifyTestDir = File("./build/plugin/Liquify").apply { mkdirs() }
+val liquifyTestServerDir = File("./build/plugin/testserver/").apply { mkdirs() }
 
-fun setupLiquifyTestDir() {
-  // Copy from src/main/resources
-  File("./src/test/resources/Liquify")
-      .apply { mkdirs() }
-      .copyRecursively(liquifyTestDir)
-}
+val liquifyTestDir: File
+  get() {
+    val testDir = liquifyTestServerDir
+    // Copy from src/main/resources
+    File("./src/test/resources/testserver")
+        .apply { mkdirs() }
+        .copyRecursively(testDir, overwrite = true)
+    return testDir.resolve("plugins/Liquify")
+  }

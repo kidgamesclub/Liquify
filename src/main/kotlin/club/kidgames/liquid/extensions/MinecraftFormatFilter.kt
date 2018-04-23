@@ -7,7 +7,7 @@ import liqp.filters.LFilter
 import liqp.nodes.RenderContext
 import java.util.concurrent.atomic.AtomicReference
 
-val filterFlagKey = "mcformat"
+const val filterFlagKey = "mcformat"
 
 class MinecraftFormatFilter(val format: MinecraftFormat) : LFilter {
 

@@ -1,8 +1,9 @@
 package club.kidgames.liquid
 
+import club.kidgames.liquid.api.LiquifyRenderer
 import club.kidgames.liquid.api.PlaceholderExtender
 import club.kidgames.liquid.api.models.LiquidModelMap
-import club.kidgames.liquid.plugin.LiquidRuntimeEngine
+import club.kidgames.liquid.plugin.Liquify
 import com.google.common.collect.ImmutableMap
 import me.clip.placeholderapi.PlaceholderAPI
 import me.clip.placeholderapi.PlaceholderHook
@@ -13,25 +14,27 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.util.*
 
-class LiquidRuntimeEngineTest {
-  var _engine: LiquidRuntimeEngine? = null
-  val engine: LiquidRuntimeEngine
-    get() = _engine!!
+class LiquidBenchmarkTest {
+
+  private var _liquify: Liquify? = null
+  var liquify:Liquify
+    get() = _liquify!!
+    set(value) { _liquify = value }
+
+  private val renderer:LiquifyRenderer
+    get() = liquify.renderer
 
   @Before
   fun setup() {
     PlaceholderAPI.unregisterPlaceholderHook("TestPlugin")
+    liquify = Liquify(dataFolder = liquifyTestDir)
 
-    val placeholders = ArrayList<PlaceholderExtender>()
-    placeholders.add(object : PlaceholderExtender("test", "echo") {
+    liquify.extenders.registerPlaceholder(object : PlaceholderExtender("test", "echo") {
       override fun resolvePlaceholder(model: LiquidModelMap): Any? {
         return LiquidModelMap { key,_ -> "echo: $key" }
       }
     })
 
-    setupLiquifyTestDir()
-
-    _engine = LiquidRuntimeEngine(placeholders = placeholders, baseDir = liquifyTestDir)
     val playerToMap = { player: Player ->
       ImmutableMap.of<String, Any>("name", player.name, "uniqueId",
           player.uniqueId)
@@ -71,12 +74,12 @@ class LiquidRuntimeEngineTest {
     record("PlaceholderAPI Final", placeholder)
 
     val liquidModels = record("Create models", {
-      players.map { p -> engine.buildRenderContext({it.player = p}) }
+      players.map { p -> renderer.newRenderContext({it.player = p}) }
     })
 
     val liquid = {
       for (player in liquidModels) {
-        engine.renderWithContext("Hello, world. This is {{player.uniqueId}} {{player.name}}", player)
+        renderer.render("Hello, world. This is {{player.uniqueId}} {{player.name}}", player)
       }
     }
     record("Liquid Cold", liquid)
@@ -86,7 +89,7 @@ class LiquidRuntimeEngineTest {
 
     val liquidNoModel = {
       for (player in players) {
-        engine.render("Hello, world. This is {{player.uniqueId}} {{player.name}}", player)
+        renderer.render("Hello, world. This is {{player.uniqueId}} {{player.name}}", player)
       }
     }
 

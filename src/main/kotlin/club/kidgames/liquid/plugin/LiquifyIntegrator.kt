@@ -13,12 +13,13 @@ import java.util.logging.Logger
  * Integrates this plugin with others.  This class should contain as much plugin code as possible, given the
  * classloading issues with {@link JavaPlugin} that make testing difficult
  */
-data class LiquifyIntegrator(var runtime: LiquidRuntime, val logger: Logger) {
+data class LiquifyIntegrator(val liquify: Liquify,
+                             val logger: Logger) {
 
-  private val name: String = runtime.name
+  private val name: String = liquify.name
 
   fun extractSnippets(plugin: PluginInfo) {
-    val includesDir = runtime.dataFolder.resolve("snippets")
+    val includesDir = liquify.dataFolder.resolve("snippets")
     val pluginSnippets = plugin.dataFolder.resolve("snippets")
     if (pluginSnippets.exists()) {
       logger.log(Level.INFO, "Found liquid snippet folder at $pluginSnippets")
@@ -38,14 +39,14 @@ data class LiquifyIntegrator(var runtime: LiquidRuntime, val logger: Logger) {
               parentPath.isNotEmpty() -> "$parentPath.${file.nameWithoutExtension}"
               else -> file.nameWithoutExtension
             }
-            runtime.registerSnippet(SnippetExtender(plugin.name, snippetName, text))
+            liquify.extenders.registerSnippet(SnippetExtender(plugin.name, snippetName, text))
           }
     }
   }
 
   fun integratePlaceholderAPI() {
     logger.log(Level.INFO, "Enabling Placeholder API integrations")
-    runtime.fallbackResolver = fallback@{ placeholder, model ->
+    liquify.fallbackResolver = fallback@{ placeholder, model ->
       try {
         val placeholders = PlaceholderAPI.getPlaceholders()[placeholder]
         logger.log(Level.INFO, "Placeholders: $placeholders for $placeholder")
@@ -78,9 +79,9 @@ data class LiquifyIntegrator(var runtime: LiquidRuntime, val logger: Logger) {
     PlaceholderAPI.registerPlaceholderHook(name, object : PlaceholderHook() {
       override fun onPlaceholderRequest(player: Player?, identifier: String): String? {
         //If a known snippet name, otherwise render something else
-        return if (runtime.isRegistered(LiquidExtenderType.SNIPPET, identifier)) {
-          val snippetText = runtime.snippets[identifier]!!
-          runtime.render(snippetText, player!!)
+        return if (liquify.extenders.isRegistered(LiquidExtenderType.SNIPPET, identifier)) {
+          val snippetText = liquify.extenders.snippetMap[identifier]!!
+          liquify.renderer.render(snippetText, player!!)
         } else {
           null
         }

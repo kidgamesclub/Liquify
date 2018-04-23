@@ -103,35 +103,35 @@ data class LiquifyExtenders(private val logger: Logger,
    * Registers an extender with this instance of the liquify plugin.  Invokes the [onRegistered] if
    * the plugin was registered successfully, otherwise [onFailedRegistration]
    */
-  override fun <E : LiquifyExtender> register(extension: E): LiquidExtensionResult {
+  override fun <E : LiquifyExtender> register(extender: E): LiquidExtensionResult {
 
-    val plugins = plugins(extension.type)
-    if (plugins[extension.pluginId].isNotEmpty()) {
-      logger.log(Level.WARNING, "Duplicate extension ${extension.type} for ${extension.pluginId}: ${extension.name}")
-      onFailedRegistration.accept(DUPLICATE, extension)
+    val plugins = plugins(extender.type)
+    if (plugins[extender.pluginId].isNotEmpty()) {
+      logger.log(Level.WARNING, "Duplicate extension ${extender.type} for ${extender.pluginId}: ${extender.name}")
+      onFailedRegistration.accept(DUPLICATE, extender)
       return DUPLICATE
     } else {
-      plugins.put(extension.pluginId, extension)
+      plugins.put(extender.pluginId, extender)
     }
 
-    val extenders = extenders(extension.type)
-    val conflicts = conflicts(extension.type)
-    val existing = extenders[extension.name]
+    val extenders = extenders(extender.type)
+    val conflicts = conflicts(extender.type)
+    val existing = extenders[extender.name]
 
-    if (existing != null && existing.pluginId != extension.pluginId) {
-      conflicts[extension.name] = extension
-      conflicts[extension.name] = existing
-      logger.log(Level.WARNING, "Conflict for ${extension.name} of type ${extension.type} between ${extension.pluginId} and ${existing.pluginId}")
-      onFailedRegistration.accept(CONFLICT, extension)
+    if (existing != null && existing.pluginId != extender.pluginId) {
+      conflicts[extender.name] = extender
+      conflicts[extender.name] = existing
+      logger.log(Level.WARNING, "Conflict for ${extender.name} of type ${extender.type} between ${extender.pluginId} and ${existing.pluginId}")
+      onFailedRegistration.accept(CONFLICT, extender)
       return CONFLICT
     }
 
-    extenders[extension.name] = extension
-    plugins.put(extension.pluginId, extension)
+    extenders[extender.name] = extender
+    plugins.put(extender.pluginId, extender)
 
-    onRegistered.accept(extension)
+    onRegistered.accept(extender)
 
-    logger.log(Level.WARNING, "Registered ${extension.name} of type ${extension.type} for ${extension.pluginId}")
+    logger.log(Level.WARNING, "Registered ${extender.name} of type ${extender.type} for ${extender.pluginId}")
     return SUCCESS
   }
 }

@@ -1,7 +1,6 @@
 package club.kidgames.liquid.api
 
-import club.kidgames.liquid.api.models.LiquidModelMap
-import club.kidgames.liquid.extensions.ModelContributor
+import club.kidgames.liquid.liqp.ModelContributor
 import liqp.nodes.RenderContext
 import org.bukkit.entity.Player
 import java.util.function.Consumer

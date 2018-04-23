@@ -1,39 +1,29 @@
-package club.kidgames.liquid.api.models
+package club.kidgames.liquid.api
 
-import club.kidgames.liquid.extensions.EntrySupplier
-import club.kidgames.liquid.extensions.FallbackResolver
+import club.kidgames.liquid.liqp.EntrySupplier
+import club.kidgames.liquid.liqp.FallbackResolver
 import org.bukkit.Server
 import org.bukkit.World
 import org.bukkit.entity.Player
 import java.util.*
 import java.util.function.Supplier
 
-
-
-
 /**
- * Simple implementation that allows you to provide a supplier for a key, and the first time that map key is accessed,
- * the supplier will be invoked.  Also supports a default supplier, which is invoked for non-defined map keys, and the
- * value is cached thereafter.
+ * Used as the rendering model for Liquify templates.  This model supports:
+ *
+ * * Key-based suppliers, for lazy/deferred resolution of data.
+ * * Fallback supplier/s, for resolving unknown or dynamic keys (the values are cached after being resolved the first time)
  *
  * The idea is to defer all calculations as late as possible, in the case that map entries are expensive to retrieve
  * or calculate, and you don't know which ones will be needed in advance.
  */
-class LiquidModelMap : HashMap<String, Any?> {
-  private val keySuppliers = HashMap<String, EntrySupplier>()
-  private val defaultSupplier: FallbackResolver
+class LiquidModelMap(private val defaultSuppliers: List<FallbackResolver>) : HashMap<String, Any?>() {
+  constructor(vararg defaultSuppliers: FallbackResolver) : this(listOf(*defaultSuppliers))
 
+  private val keySuppliers = HashMap<String, EntrySupplier>()
   var player: Player? by this
   var world: World? by this
   var server: Server? by this
-
-  constructor(defaultSupplier: FallbackResolver) {
-    this.defaultSupplier = defaultSupplier
-  }
-
-  constructor() {
-    this.defaultSupplier = { _, _ -> null }
-  }
 
   fun putSupplier(key: String, supplier: Supplier<Any?>): LiquidModelMap {
     this.keySuppliers[key] = { _ -> supplier.get() }
@@ -53,12 +43,16 @@ class LiquidModelMap : HashMap<String, Any?> {
         // for eliminating the extra call every time
         val value: Any?
         if (keySuppliers.containsKey(key)) {
-          value = keySuppliers[key]?.let {supplier->
+          value = keySuppliers[key]?.let { supplier ->
             supplier(this)
           }
           keySuppliers.remove(key)
         } else {
-          value = defaultSupplier(key, this)
+          value = defaultSuppliers
+              .mapNotNull { fallback ->
+                fallback.invoke(key, this)
+              }
+              .firstOrNull()
         }
         this[key] = value
       }
@@ -68,15 +62,18 @@ class LiquidModelMap : HashMap<String, Any?> {
   }
 
   companion object {
-    @JvmStatic fun newInstance(): LiquidModelMap {
+    @JvmStatic
+    fun newInstance(): LiquidModelMap {
       return LiquidModelMap()
     }
 
-    @JvmStatic fun newInstance(defaultSupplier: FallbackResolver): LiquidModelMap {
+    @JvmStatic
+    fun newInstance(defaultSupplier: FallbackResolver): LiquidModelMap {
       return LiquidModelMap(defaultSupplier)
     }
 
-    @JvmStatic fun newInstance(defaultSupplier: (Any)-> Any?): LiquidModelMap {
+    @JvmStatic
+    fun newInstance(defaultSupplier: (Any) -> Any?): LiquidModelMap {
       return LiquidModelMap({ key, _ -> defaultSupplier(key) })
     }
   }

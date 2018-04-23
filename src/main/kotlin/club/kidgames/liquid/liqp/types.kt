@@ -1,6 +1,6 @@
-package club.kidgames.liquid.extensions
+package club.kidgames.liquid.liqp
 
-import club.kidgames.liquid.api.models.LiquidModelMap
+import club.kidgames.liquid.api.LiquidModelMap
 import liqp.MutableParseSettings
 import liqp.MutableRenderSettings
 

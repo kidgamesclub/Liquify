@@ -1,8 +1,8 @@
 package club.kidgames.liquid
 
+import club.kidgames.liquid.api.LiquidModelMap
 import club.kidgames.liquid.api.LiquifyRenderer
 import club.kidgames.liquid.api.PlaceholderExtender
-import club.kidgames.liquid.api.models.LiquidModelMap
 import club.kidgames.liquid.plugin.Liquify
 import com.google.common.collect.ImmutableMap
 import me.clip.placeholderapi.PlaceholderAPI
@@ -16,12 +16,8 @@ import java.util.*
 
 class LiquidBenchmarkTest {
 
-  private var _liquify: Liquify? = null
-  var liquify:Liquify
-    get() = _liquify!!
-    set(value) { _liquify = value }
-
-  private val renderer:LiquifyRenderer
+  private lateinit var liquify: Liquify
+  private val renderer: LiquifyRenderer
     get() = liquify.renderer
 
   @Before
@@ -31,7 +27,7 @@ class LiquidBenchmarkTest {
 
     liquify.extenders.registerPlaceholder(object : PlaceholderExtender("test", "echo") {
       override fun resolvePlaceholder(model: LiquidModelMap): Any? {
-        return LiquidModelMap { key,_ -> "echo: $key" }
+        return LiquidModelMap({ key, _ -> "echo: $key" })
       }
     })
 
@@ -74,7 +70,7 @@ class LiquidBenchmarkTest {
     record("PlaceholderAPI Final", placeholder)
 
     val liquidModels = record("Create models", {
-      players.map { p -> renderer.newRenderContext({it.player = p}) }
+      players.map { p -> renderer.newRenderContext({ it.player = p }) }
     })
 
     val liquid = {

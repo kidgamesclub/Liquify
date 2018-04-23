@@ -1,4 +1,4 @@
-package club.kidgames.liquid.extensions
+package club.kidgames.liquid.liqp
 
 import flattened
 import isMinecraftFormat

@@ -1,8 +1,8 @@
-package club.kidgames.liquid.extensions
+package club.kidgames.liquid.liqp
 
-import club.kidgames.liquid.extensions.MinecraftFormat.*
-import club.kidgames.liquid.extensions.MinecraftFormatType.Color
-import club.kidgames.liquid.extensions.MinecraftFormatType.Style
+import club.kidgames.liquid.liqp.MinecraftFormat.*
+import club.kidgames.liquid.liqp.MinecraftFormatType.Color
+import club.kidgames.liquid.liqp.MinecraftFormatType.Style
 import liqp.nodes.RenderContext
 import java.util.*
 
@@ -81,14 +81,14 @@ private val RenderContext.minecraftFormatStack: Deque<MinecraftFormat>
     }
   }
 
-val RenderContext.currMinecraftColor:MinecraftFormat
+val RenderContext.currMinecraftColor: MinecraftFormat
   get() {
     return minecraftFormatStack
         .firstOrNull { format -> format.type == Color }
     ?: NoColor
   }
 
-val RenderContext.currMinecraftStyle:MinecraftFormat
+val RenderContext.currMinecraftStyle: MinecraftFormat
   get() {
     return minecraftFormatStack
         .firstOrNull { format -> format.type == Style }

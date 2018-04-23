@@ -1,4 +1,4 @@
-package club.kidgames.liquid.extensions
+package club.kidgames.liquid.liqp
 
 import asString
 import liqp.filters.FilterChainPointer
@@ -32,7 +32,7 @@ class MinecraftFormatFilter(val format: MinecraftFormat) : LFilter {
    * At the end of the filter chain, we write the format strings once
    */
   override fun onEndChain(params: FilterParams, chain: FilterChainPointer, context: RenderContext, result: AtomicReference<Any?>) {
-    chain.with(filterFlagKey, {format:String->
+    chain.with(filterFlagKey, { format:String->
       val resultString = result.asString()
       val builder = StringBuilder()
       if (resultString.isNotBlank()) {

@@ -2,7 +2,7 @@ package club.kidgames.liquid.extensions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import club.kidgames.liquid.api.models.LiquidModelMap;
+import club.kidgames.liquid.api.LiquidModelMap;
 import org.junit.Test;
 
 public class ModelsTest {

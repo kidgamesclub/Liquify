@@ -1,7 +1,7 @@
-package club.kidgames.liquid.extensions
+package club.kidgames.liquid.liqp
 
-import club.kidgames.liquid.extensions.MinecraftFormatType.Color
-import club.kidgames.liquid.extensions.MinecraftFormatType.Style
+import club.kidgames.liquid.liqp.MinecraftFormatType.Color
+import club.kidgames.liquid.liqp.MinecraftFormatType.Style
 import com.google.common.base.CaseFormat.LOWER_CAMEL
 import com.google.common.base.CaseFormat.LOWER_HYPHEN
 import com.google.common.base.CaseFormat.LOWER_UNDERSCORE

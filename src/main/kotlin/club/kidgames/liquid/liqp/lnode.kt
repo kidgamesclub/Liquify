@@ -1,4 +1,4 @@
-import club.kidgames.liquid.extensions.MinecraftFormatTag
+import club.kidgames.liquid.liqp.MinecraftFormatTag
 import liqp.nodes.AtomNode
 import liqp.nodes.BlockNode
 import liqp.nodes.LNode

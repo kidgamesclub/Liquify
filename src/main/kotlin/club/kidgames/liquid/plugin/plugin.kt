@@ -2,5 +2,5 @@ package club.kidgames.liquid.plugin
 
 import java.io.File
 
-val liquifyPluginName = "Liquify"
-val liquifyDataDir = File("./plugins/$liquifyPluginName/").apply { mkdirs() }
+const val LIQUIFY_PLUGIN_NAME = "Liquify"
+val liquifyDataDir = File("./plugins/$LIQUIFY_PLUGIN_NAME/").apply { mkdirs() }

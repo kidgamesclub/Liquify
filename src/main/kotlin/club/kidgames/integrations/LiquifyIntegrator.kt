@@ -4,6 +4,7 @@ import club.kidgames.liquid.api.LiquifyRenderer
 import club.kidgames.liquid.api.SnippetExtender
 import club.kidgames.liquid.plugin.LiquifyExtenders
 import club.kidgames.liquid.plugin.PluginInfo
+import club.kidgames.liquid.plugin.LIQUIFY_PLUGIN_NAME
 import liqp.parser.Flavor.LIQUID
 import org.bukkit.plugin.PluginManager
 import java.io.File
@@ -22,21 +23,30 @@ data class LiquifyIntegrator(private val renderer: LiquifyRenderer,
                              private val baseDir: File,
                              private val logger: Logger) {
 
+
+  fun unregisterAll() {
+    pluginManager.plugins
+        .filter { it.isEnabled }
+        .map { PluginInfo(it.name, it.dataFolder) }
+        .forEach { remove3rdPartyIntegration(it) }
+  }
+
   fun integrateWith3rdPartyPlugin(plugin: PluginInfo) {
-    extractSnippets(plugin)
-    extenders.integrators[plugin.name]
-        ?.integratePlugin(renderer = renderer,
-            extenders = extenders,
-            pluginInfo = plugin,
-            manager = pluginManager)
+    if(plugin.name != LIQUIFY_PLUGIN_NAME) {
+      extractSnippets(plugin)
+      extenders.integrators[plugin.name]
+          ?.integratePlugin(renderer = renderer,
+              extenders = extenders,
+              pluginInfo = plugin,
+              manager = pluginManager)
+    }
   }
 
   fun remove3rdPartyIntegration(plugin: PluginInfo) {
-
+    extenders.unregisterPlugin(plugin.name)
   }
 
   private fun extractSnippets(plugin: PluginInfo) {
-
     val includesDir = baseDir.resolve(LIQUID.includesDirName)
     val pluginSnippets = plugin.dataFolder.resolve(LIQUID.includesDirName)
     if (pluginSnippets.exists()) {

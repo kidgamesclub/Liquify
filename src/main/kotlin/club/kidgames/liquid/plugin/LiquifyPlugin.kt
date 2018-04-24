@@ -11,25 +11,40 @@ import org.bukkit.plugin.java.JavaPlugin
  */
 open class LiquifyPlugin : JavaPlugin() {
 
-  private val liquify: Liquify
+  internal val liquify: Liquify = Liquify(logger, name, dataFolder)
   private val integrator: LiquifyIntegrator
+  private val listener: LiquidPluginListener
 
   init {
-    liquify = Liquify(logger, name, dataFolder)
     liquifyInstance = liquify
 
     val (renderer, extenders) = liquify
     integrator = LiquifyIntegrator(renderer, extenders, server.pluginManager, dataFolder, logger)
-
-    // By default, integrates PlaceholderAPI
-    extenders.registerIntegrator(PlaceholderAPIIntegrator(extenders, logger))
+    listener = LiquidPluginListener(integrator)
   }
 
-  override fun onEnable() {
-    server.pluginManager.registerEvents(LiquidPluginListener(integrator), this)
+  internal fun reload():Boolean {
+    unload()
+    load()
+    return true
+  }
 
-    this.getCommand("liquify").executor = LiquifyCommand(liquify.renderer)
-    this.getCommand("lq").executor = LiquifyCommand(liquify.renderer)
+  internal fun unload() {
+    integrator.unregisterAll()
+    liquify.isInitialized = false
+    liquify.unload()
+    liquify.refresh()
+  }
+
+  internal fun load() {
+    server.pluginManager.registerEvents(listener, this)
+
+    // Built-in PlaceholderAPI integration
+    val (renderer, extenders) = liquify
+    extenders.registerIntegrator(PlaceholderAPIIntegrator(extenders, logger))
+
+    this.getCommand("liquify").executor = LiquifyCommand(logger, liquify.renderer, this::reload)
+    this.getCommand("lq").executor = LiquifyCommand(logger, liquify.renderer, this::reload)
 
     // Look for any plugins registered prior to this plugin
     server.pluginManager.plugins
@@ -38,9 +53,11 @@ open class LiquifyPlugin : JavaPlugin() {
           val pluginInfo = PluginInfo(it.name, it.dataFolder)
           integrator.integrateWith3rdPartyPlugin(pluginInfo)
         }
+
+    liquify.isInitialized = true
+    liquify.refresh()
   }
 
-  override fun onLoad() {
-    liquify.isInitialized = true
-  }
+  override fun onDisable() = this.unload()
+  override fun onEnable() = this.load()
 }

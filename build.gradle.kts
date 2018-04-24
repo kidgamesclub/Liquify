@@ -82,6 +82,9 @@ tasks.withType(ShadowJar::class.java) {
   dependencies {
     exclude(dependency(":spigot-api"))
     exclude(dependency(":PlaceholderAPI"))
+    include(dependency(":jackson-core"))
+    include(dependency(":jackson-annotations"))
+    include(dependency(":jackson-databind"))
     include(dependency(":liqp-core"))
     include(dependency(":liqp-ext"))
     include(dependency(":antlr4-runtime"))
@@ -89,8 +92,11 @@ tasks.withType(ShadowJar::class.java) {
     include(dependency(":streamex"))
     include(dependency(":jackson-annotations"))
     include(dependency(":kotlin-reflect"))
+    include(dependency(":kotlin-stdlib"))
+    include(dependency(":kotlin-stdlib-jdk8"))
   }
   classifier = null
+  version = null
 }
 
 tasks["build"].dependsOn("shadowJar")

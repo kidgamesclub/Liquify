@@ -46,4 +46,5 @@ interface LiquifyExtenderRegistry {
 
   fun isRegistered(type: LiquidExtenderType, name: String): Boolean
   fun unregisterPlugin(pluginId: String)
+
 }

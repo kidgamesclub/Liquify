@@ -97,7 +97,19 @@ data class LiquifyExtenders(private val logger: Logger,
     return extenders(type).containsKey(name)
   }
 
-  override fun unregisterPlugin(pluginId: String) {}
+  override fun unregisterPlugin(pluginId: String) {
+    registeredPluginsByType.forEach { (_, value) ->
+      value.removeAll(pluginId)
+    }
+
+    registeredExtendersByType.forEach { (_, extender) ->
+      extender
+          .filter { (_, value) ->
+            value.pluginId == pluginId
+          }
+          .forEach { (key) -> extender.remove(key) }
+    }
+  }
 
   /**
    * Registers an extender with this instance of the liquify plugin.  Invokes the [onRegistered] if
@@ -133,6 +145,13 @@ data class LiquifyExtenders(private val logger: Logger,
 
     logger.log(Level.WARNING, "Registered ${extender.name} of type ${extender.type} for ${extender.pluginId}")
     return SUCCESS
+  }
+
+  fun unregisterAll() {
+    logger.log(Level.INFO, "Clearing out all extenders")
+    registeredExtendersByType.clear()
+    conflictsByType.clear()
+    registeredPluginsByType.clear()
   }
 }
 

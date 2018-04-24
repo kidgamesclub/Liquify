@@ -79,7 +79,8 @@ enum class MinecraftFormat(val format: Char, val type: MinecraftFormatType = Col
     return builder
   }
 
-  override fun toString() = "$name: $formatString"
+  override fun toString() = formatString
+
   val formatString: String = when {
     isNone -> ""
     else -> "$FORMAT_CHAR$format"

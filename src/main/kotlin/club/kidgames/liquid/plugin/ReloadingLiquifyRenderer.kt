@@ -14,6 +14,7 @@ import liqp.CacheSetup
 import liqp.LiquidParser
 import liqp.LiquidRenderer
 import liqp.MutableRenderSettings
+import liqp.RenderSettings
 import liqp.ext.filters.collections.CommaSeparatedFilter
 import liqp.ext.filters.colors.DarkenFilter
 import liqp.ext.filters.colors.ToRgbFilter
@@ -41,8 +42,10 @@ import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.logging.Logger;
 
 class ReloadingLiquifyRenderer(val dataFolder: File,
+                               val logger: Logger,
                                val extenders: LiquifyExtenders) : LiquifyRenderer {
 
   private val executorService: ExecutorService = Executors.newFixedThreadPool(15)
@@ -53,25 +56,28 @@ class ReloadingLiquifyRenderer(val dataFolder: File,
     }
   }
 
-  private lateinit var parser: LiquidParser
+  lateinit var parser: LiquidParser
   private lateinit var renderer: liqp.LiquidRenderer
   private lateinit var fallbackResolvers: List<FallbackResolver>
   private lateinit var snippets: List<SnippetExtender>
   private lateinit var placeholders: List<PlaceholderExtender>
+
+  internal val renderSettings: RenderSettings
+    get() = renderer.settings
 
   init {
     reload()
   }
 
   internal fun reload() {
-
+    logger.info("Reloading Liquify rendering engine")
     val tags = extenders.tags
         .union(MinecraftFormat.values()
             .map { MinecraftFormatTag(it) })
 
-    val filters = extenders.filters.union(MinecraftFormat.values()
-        .map { MinecraftFormatFilter(it) }
-        .toList())
+    val filters = extenders.filters
+        .union(MinecraftFormat.values()
+            .map { MinecraftFormatFilter(it) })
 
     // These values are accessed on every render, so we want to capture them when the component is reloaded, rather
     // than inspecting/collapsing the extender collection each time.
@@ -81,9 +87,6 @@ class ReloadingLiquifyRenderer(val dataFolder: File,
 
     // java time
     val parseSettings = LiquidParser.newBuilder()
-    extenders.parseSettings.forEach { it.configureParser(parseSettings) }
-
-    val liquidParser = parseSettings
         .addFilters(
             MinusYearsFilter(),
             MinusMonthsFilter(),
@@ -118,7 +121,11 @@ class ReloadingLiquifyRenderer(val dataFolder: File,
         .baseDir(dataFolder)
         .flavor(Flavor.LIQUID)
         .maxTemplateSize(50000L)
-        .toParser()
+
+    // Run all settings extenders
+    extenders.parseSettings.forEach { it.configureParser(parseSettings) }
+
+    val liquidParser = parseSettings.toParser()
 
     val renderSettings = MutableRenderSettings(liquidParser.toRenderSettings())
         .apply {
@@ -183,5 +190,16 @@ class ReloadingLiquifyRenderer(val dataFolder: File,
     modelContributors.forEach { contributeModels -> contributeModels(model) }
 
     return renderContext
+  }
+
+  fun withRenderSettings(configure: MutableRenderSettings.() -> Unit): ReloadingLiquifyRenderer {
+    val copy = ReloadingLiquifyRenderer(this.dataFolder, this.logger, this.extenders)
+
+    val newSettings = this.renderSettings
+        .toMutableRenderSettings()
+        .apply { configure() }
+        .build()
+    copy.renderer = renderer.withRenderSettings(newSettings)
+    return copy
   }
 }

@@ -15,12 +15,12 @@ val Iterable<LNode>.flattened: List<LNode>
       when (token) {
         is AtomNode -> {
           val value: String = token.get()
-          if (value.trim().isNotEmpty()) {
+          if (value.isNotBlank()) {
             children.add(token)
           }
         }
         is BlockNode -> {
-          children.addAll(token.children.flattened)
+          children.addAll(token.children().flattened)
         }
         else -> {
           children.add(token)
